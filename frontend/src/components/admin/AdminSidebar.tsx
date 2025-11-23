@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface NavItem {
   path: string;
@@ -11,10 +12,13 @@ const navItems: NavItem[] = [
   { path: '/admin', label: 'Dashboard' },
   { path: '/admin/products', label: 'Products' },
   { path: '/admin/products/new', label: 'Add Product' },
+  { path: '/admin/users', label: 'Users' },
 ];
 
 export const AdminSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => {
@@ -26,6 +30,11 @@ export const AdminSidebar = () => {
 
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -63,29 +72,50 @@ export const AdminSidebar = () => {
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        <div className="p-4 sm:p-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
-            Admin Panel
-          </h2>
-          <nav>
-            <ul className="space-y-2">
-              {navItems.map((item) => (
-                <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    onClick={handleLinkClick}
-                    className={`block px-3 sm:px-4 py-2 rounded-lg transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-blue-600 text-white font-medium'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+        <div className="p-4 sm:p-6 flex flex-col h-full">
+          <div className="flex-grow">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
+              Admin Panel
+            </h2>
+            <nav>
+              <ul className="space-y-2">
+                {navItems.map((item) => (
+                  <li key={item.path}>
+                    <Link
+                      to={item.path}
+                      onClick={handleLinkClick}
+                      className={`block px-3 sm:px-4 py-2 rounded-lg transition-colors ${
+                        isActive(item.path)
+                          ? 'bg-blue-600 text-white font-medium'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+
+          {/* User info and logout */}
+          <div className="mt-auto pt-4 border-t border-gray-200">
+            <div className="mb-3 px-3">
+              <p className="text-xs text-gray-500">Logged in as</p>
+              <p className="text-sm font-medium text-gray-800 truncate">
+                {user?.getUsername()}
+              </p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full px-3 sm:px-4 py-2 text-left text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors flex items-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Logout
+            </button>
+          </div>
         </div>
       </aside>
 

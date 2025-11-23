@@ -1,15 +1,21 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 
 // Components
 import { Header, Footer } from '@/components/public';
+import { ProtectedRoute } from '@/components/common/ProtectedRoute';
+
+// Context
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { setAuthTokenGetter } from '@/utils/api';
 
 // Public pages (eagerly loaded for better initial performance)
 import Home from '@/pages/Home';
 import Categories from '@/pages/Categories';
 import CategoryProducts from '@/pages/CategoryProducts';
 import ProductDetail from '@/pages/ProductDetail';
+import { Login } from '@/pages/Login';
 
 // Admin pages (lazy loaded - code splitting)
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
@@ -30,10 +36,23 @@ const PageLoader = () => (
   </div>
 );
 
+// Component to set up auth token getter
+const AuthSetup = () => {
+  const { getToken } = useAuth();
+  
+  useEffect(() => {
+    setAuthTokenGetter(getToken);
+  }, [getToken]);
+  
+  return null;
+};
+
 function App() {
   return (
     <BrowserRouter>
-      <Toaster
+      <AuthProvider>
+        <AuthSetup />
+        <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
@@ -75,37 +94,48 @@ function App() {
             <Route path="/categories/:category" element={<CategoryProducts />} />
             <Route path="/products/:id" element={<ProductDetail />} />
 
-            {/* Admin routes - wrapped in Suspense for code splitting */}
+            {/* Login route */}
+            <Route path="/login" element={<Login />} />
+
+            {/* Admin routes - protected and lazy loaded */}
             <Route
               path="/admin"
               element={
-                <Suspense fallback={<PageLoader />}>
-                  <AdminDashboard />
-                </Suspense>
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminDashboard />
+                  </Suspense>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/products"
               element={
-                <Suspense fallback={<PageLoader />}>
-                  <AdminProductList />
-                </Suspense>
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminProductList />
+                  </Suspense>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/products/new"
               element={
-                <Suspense fallback={<PageLoader />}>
-                  <AdminProductNew />
-                </Suspense>
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminProductNew />
+                  </Suspense>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/products/:id/edit"
               element={
-                <Suspense fallback={<PageLoader />}>
-                  <AdminProductEdit />
-                </Suspense>
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminProductEdit />
+                  </Suspense>
+                </ProtectedRoute>
               }
             />
 
@@ -115,6 +145,7 @@ function App() {
         </main>
         <Footer />
       </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

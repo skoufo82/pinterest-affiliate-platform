@@ -47,10 +47,27 @@ axiosRetry(apiClient, {
   },
 });
 
+// Function to set auth token (will be called from AuthContext)
+let getAuthToken: (() => Promise<string | null>) | null = null;
+
+export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
+  getAuthToken = getter;
+};
+
 // Request interceptor for logging and auth
 apiClient.interceptors.request.use(
-  (config) => {
-    // Add any auth tokens here if needed
+  async (config) => {
+    // Add JWT token to admin requests
+    if (config.url?.includes('/admin') && getAuthToken) {
+      try {
+        const token = await getAuthToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch (error) {
+        console.error('Failed to get auth token:', error);
+      }
+    }
     return config;
   },
   (error) => {
@@ -151,6 +168,37 @@ export const adminApi = {
         'Content-Type': file.type,
       },
     });
+  },
+
+  // User Management
+  listUsers: async (): Promise<any> => {
+    const response = await apiClient.get('/admin/users');
+    return response.data;
+  },
+
+  createUser: async (data: {
+    email: string;
+    username: string;
+    givenName?: string;
+    familyName?: string;
+    password: string;
+    sendEmail?: boolean;
+  }): Promise<any> => {
+    const response = await apiClient.post('/admin/users', data);
+    return response.data;
+  },
+
+  deleteUser: async (username: string): Promise<any> => {
+    const response = await apiClient.delete(`/admin/users/${username}`);
+    return response.data;
+  },
+
+  resetPassword: async (username: string, password: string, temporary = false): Promise<any> => {
+    const response = await apiClient.post(`/admin/users/${username}/reset-password`, {
+      password,
+      temporary,
+    });
+    return response.data;
   },
 };
 
