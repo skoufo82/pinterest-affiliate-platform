@@ -3,12 +3,15 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 
 export class StorageStack extends cdk.Stack {
   public readonly productsTable: dynamodb.Table;
   public readonly imagesBucket: s3.Bucket;
   public readonly imagesCdn: cloudfront.Distribution;
+  public readonly userPool: cognito.UserPool;
+  public readonly userPoolClient: cognito.UserPoolClient;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -118,6 +121,62 @@ export class StorageStack extends cdk.Stack {
       comment: 'CDN for Pinterest Affiliate Platform product images',
     });
 
+    // Create Cognito User Pool for admin authentication
+    this.userPool = new cognito.UserPool(this, 'AdminUserPool', {
+      userPoolName: 'PinterestAffiliateAdmins',
+      selfSignUpEnabled: false, // Only admins can create users
+      signInAliases: {
+        email: true,
+        username: true,
+      },
+      autoVerify: {
+        email: true,
+      },
+      standardAttributes: {
+        email: {
+          required: true,
+          mutable: true,
+        },
+        givenName: {
+          required: false,
+          mutable: true,
+        },
+        familyName: {
+          required: false,
+          mutable: true,
+        },
+      },
+      passwordPolicy: {
+        minLength: 8,
+        requireLowercase: true,
+        requireUppercase: true,
+        requireDigits: true,
+        requireSymbols: false,
+      },
+      accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // Create User Pool Client for the frontend
+    this.userPoolClient = new cognito.UserPoolClient(this, 'AdminUserPoolClient', {
+      userPool: this.userPool,
+      userPoolClientName: 'PinterestAffiliateWebClient',
+      authFlows: {
+        userPassword: true,
+        userSrp: true,
+      },
+      generateSecret: false, // No secret for public clients
+      preventUserExistenceErrors: true,
+    });
+
+    // Create admin group
+    new cognito.CfnUserPoolGroup(this, 'AdminGroup', {
+      userPoolId: this.userPool.userPoolId,
+      groupName: 'Admins',
+      description: 'Administrator users with full access',
+      precedence: 1,
+    });
+
     // Output the table name and bucket name
     new cdk.CfnOutput(this, 'ProductsTableName', {
       value: this.productsTable.tableName,
@@ -147,6 +206,18 @@ export class StorageStack extends cdk.Stack {
       value: `https://${this.imagesCdn.distributionDomainName}`,
       description: 'CloudFront CDN URL for Images',
       exportName: 'ImagesCdnUrl',
+    });
+
+    new cdk.CfnOutput(this, 'UserPoolId', {
+      value: this.userPool.userPoolId,
+      description: 'Cognito User Pool ID',
+      exportName: 'UserPoolId',
+    });
+
+    new cdk.CfnOutput(this, 'UserPoolClientId', {
+      value: this.userPoolClient.userPoolClientId,
+      description: 'Cognito User Pool Client ID',
+      exportName: 'UserPoolClientId',
     });
   }
 }

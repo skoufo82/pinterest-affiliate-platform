@@ -24,6 +24,7 @@ const backendStack = new BackendStack(app, 'PinterestAffiliateBackendStack', {
   description: 'Backend infrastructure for Pinterest Affiliate Platform',
   productsTable: storageStack.productsTable,
   imagesBucket: storageStack.imagesBucket,
+  userPool: storageStack.userPool,
 });
 
 // Add dependencies

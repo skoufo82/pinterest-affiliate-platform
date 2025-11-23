@@ -5,12 +5,14 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
 interface BackendStackProps extends cdk.StackProps {
   productsTable: dynamodb.Table;
   imagesBucket: s3.Bucket;
+  userPool: cognito.UserPool;
 }
 
 export class BackendStack extends cdk.Stack {
@@ -19,7 +21,7 @@ export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: BackendStackProps) {
     super(scope, id, props);
 
-    const { productsTable, imagesBucket } = props;
+    const { productsTable, imagesBucket, userPool } = props;
 
     // Create IAM role for Lambda functions
     const lambdaRole = new iam.Role(this, 'LambdaExecutionRole', {
@@ -35,10 +37,30 @@ export class BackendStack extends cdk.Stack {
     // Grant S3 permissions
     imagesBucket.grantReadWrite(lambdaRole);
 
+    // Grant Cognito permissions for user management
+    lambdaRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'cognito-idp:AdminCreateUser',
+          'cognito-idp:AdminDeleteUser',
+          'cognito-idp:AdminGetUser',
+          'cognito-idp:AdminUpdateUserAttributes',
+          'cognito-idp:AdminSetUserPassword',
+          'cognito-idp:AdminAddUserToGroup',
+          'cognito-idp:AdminRemoveUserFromGroup',
+          'cognito-idp:ListUsers',
+          'cognito-idp:ListUsersInGroup',
+        ],
+        resources: [userPool.userPoolArn],
+      })
+    );
+
     // Common Lambda environment variables
     const commonEnvironment = {
       PRODUCTS_TABLE_NAME: productsTable.tableName,
       IMAGES_BUCKET_NAME: imagesBucket.bucketName,
+      USER_POOL_ID: userPool.userPoolId,
       REGION: this.region,
     };
 
@@ -99,6 +121,46 @@ export class BackendStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/uploadImage')),
       handler: 'index.handler',
       description: 'Generate presigned URL for image upload',
+    });
+
+    // User Management Lambda Functions
+    const createUserFunction = new lambda.Function(this, 'CreateUserFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-createUser',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/createUser')),
+      handler: 'index.handler',
+      description: 'Create a new admin user',
+    });
+
+    const listUsersFunction = new lambda.Function(this, 'ListUsersFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-listUsers',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/listUsers')),
+      handler: 'index.handler',
+      description: 'List all users',
+    });
+
+    const deleteUserFunction = new lambda.Function(this, 'DeleteUserFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-deleteUser',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/deleteUser')),
+      handler: 'index.handler',
+      description: 'Delete a user',
+    });
+
+    const resetPasswordFunction = new lambda.Function(this, 'ResetPasswordFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-resetPassword',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/resetPassword')),
+      handler: 'index.handler',
+      description: 'Reset user password',
+    });
+
+    // Create Cognito Authorizer for API Gateway
+    const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [userPool],
+      authorizerName: 'AdminAuthorizer',
+      identitySource: 'method.request.header.Authorization',
     });
 
     // Create API Gateway
@@ -176,29 +238,84 @@ export class BackendStack extends cdk.Stack {
       }
     );
 
-    // Admin endpoints
+    // Admin endpoints (protected by Cognito)
     const adminResource = apiResource.addResource('admin');
     const adminProductsResource = adminResource.addResource('products');
 
     adminProductsResource.addMethod(
       'POST',
-      new apigateway.LambdaIntegration(createProductFunction)
+      new apigateway.LambdaIntegration(createProductFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
     );
 
     const adminProductResource = adminProductsResource.addResource('{id}');
     adminProductResource.addMethod(
       'PUT',
-      new apigateway.LambdaIntegration(updateProductFunction)
+      new apigateway.LambdaIntegration(updateProductFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
     );
     adminProductResource.addMethod(
       'DELETE',
-      new apigateway.LambdaIntegration(deleteProductFunction)
+      new apigateway.LambdaIntegration(deleteProductFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
     );
 
     const uploadImageResource = adminResource.addResource('upload-image');
     uploadImageResource.addMethod(
       'POST',
-      new apigateway.LambdaIntegration(uploadImageFunction)
+      new apigateway.LambdaIntegration(uploadImageFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // User Management endpoints (protected by Cognito)
+    const usersResource = adminResource.addResource('users');
+    usersResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(listUsersFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+    usersResource.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(createUserFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    const userResource = usersResource.addResource('{username}');
+    userResource.addMethod(
+      'DELETE',
+      new apigateway.LambdaIntegration(deleteUserFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    const resetPasswordResource = userResource.addResource('reset-password');
+    resetPasswordResource.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(resetPasswordFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
     );
 
     // Output API Gateway URL
