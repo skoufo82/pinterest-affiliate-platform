@@ -1,0 +1,7 @@
+node_modules
+dist
+build
+coverage
+.cdk.out
+*.log
+.DS_Store
