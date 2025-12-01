@@ -11,12 +11,11 @@ interface ProductFormProps {
 }
 
 const categories = [
-  { value: 'home', label: 'Home & Kitchen' },
-  { value: 'fashion', label: 'Fashion' },
-  { value: 'beauty', label: 'Beauty' },
-  { value: 'tech', label: 'Tech' },
-  { value: 'fitness', label: 'Fitness' },
-  { value: 'outdoor', label: 'Outdoor' },
+  { value: 'home-kitchen', label: 'Home & Kitchen' },
+  { value: 'fashion-beauty', label: 'Fashion & Beauty' },
+  { value: 'tech-electronics', label: 'Tech & Electronics' },
+  { value: 'health-wellness', label: 'Health & Wellness' },
+  { value: 'books-stationery', label: 'Books & Stationery' },
 ];
 
 export const ProductForm = ({

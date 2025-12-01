@@ -2,43 +2,37 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { successResponse, errorResponse } from '../../shared/responses';
 import { createLogger } from '../../shared/logger';
 
-// Hardcoded categories matching the frontend
+// Hardcoded categories matching the actual product categories in DynamoDB
 const CATEGORIES = [
   {
-    id: 'home-decor',
+    id: 'home-kitchen',
     name: 'Home & Kitchen',
-    slug: 'home-decor',
+    slug: 'home-kitchen',
     description: 'Beautiful home decor and kitchen essentials',
   },
   {
-    id: 'fashion',
-    name: 'Fashion',
-    slug: 'fashion',
-    description: 'Trendy fashion and accessories',
+    id: 'fashion-beauty',
+    name: 'Fashion & Beauty',
+    slug: 'fashion-beauty',
+    description: 'Trendy fashion, beauty and skincare products',
   },
   {
-    id: 'beauty',
-    name: 'Beauty',
-    slug: 'beauty',
-    description: 'Beauty and skincare products',
+    id: 'tech-electronics',
+    name: 'Tech & Electronics',
+    slug: 'tech-electronics',
+    description: 'Latest tech gadgets and electronics',
   },
   {
-    id: 'tech',
-    name: 'Tech',
-    slug: 'tech',
-    description: 'Latest tech gadgets and accessories',
+    id: 'health-wellness',
+    name: 'Health & Wellness',
+    slug: 'health-wellness',
+    description: 'Fitness, health and wellness products',
   },
   {
-    id: 'fitness',
-    name: 'Fitness',
-    slug: 'fitness',
-    description: 'Fitness and wellness products',
-  },
-  {
-    id: 'outdoor',
-    name: 'Outdoor',
-    slug: 'outdoor',
-    description: 'Outdoor and adventure gear',
+    id: 'books-stationery',
+    name: 'Books & Stationery',
+    slug: 'books-stationery',
+    description: 'Books, journals and stationery items',
   },
 ];
 
