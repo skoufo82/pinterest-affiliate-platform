@@ -59,14 +59,32 @@ export const AdminUserManagement: React.FC = () => {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.username || !formData.email || !formData.password) {
-      toast.error('Username, email, and password are required');
+    if (!formData.username || !formData.email) {
+      toast.error('Username and email are required');
+      return;
+    }
+
+    // Password is required only if NOT sending email invitation
+    if (!formData.sendEmail && !formData.password) {
+      toast.error('Password is required when not sending email invitation');
       return;
     }
 
     try {
-      await adminApi.createUser(formData);
-      toast.success('User created successfully');
+      // Only send password if provided (when sendEmail is false)
+      const userData = {
+        ...formData,
+        password: formData.sendEmail ? undefined : formData.password,
+      };
+      
+      await adminApi.createUser(userData);
+      
+      if (formData.sendEmail) {
+        toast.success('User created! An invitation email has been sent.');
+      } else {
+        toast.success('User created successfully with the provided password.');
+      }
+      
       setShowCreateModal(false);
       setFormData({
         username: '',
@@ -288,21 +306,7 @@ export const AdminUserManagement: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Password *</label>
-              <input
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Must be at least 8 characters with uppercase, lowercase, and numbers
-              </p>
-            </div>
-
-            <div className="flex items-center">
+            <div className="flex items-center p-4 bg-blue-50 rounded-md">
               <input
                 type="checkbox"
                 id="sendEmail"
@@ -311,9 +315,28 @@ export const AdminUserManagement: React.FC = () => {
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label htmlFor="sendEmail" className="ml-2 block text-sm text-gray-700">
-                Send welcome email
+                <span className="font-medium">Send email invitation</span>
+                <span className="block text-xs text-gray-600 mt-1">
+                  User will receive an email with a temporary password and instructions to set their own password
+                </span>
               </label>
             </div>
+
+            {!formData.sendEmail && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Password *</label>
+                <input
+                  type="password"
+                  required={!formData.sendEmail}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Must be at least 8 characters with uppercase, lowercase, and numbers
+                </p>
+              </div>
+            )}
 
             <div className="flex justify-end space-x-3 pt-4">
               <button

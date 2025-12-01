@@ -43,7 +43,9 @@ export const handler = async (
         ...(givenName ? [{ Name: 'given_name', Value: givenName }] : []),
         ...(familyName ? [{ Name: 'family_name', Value: familyName }] : []),
       ],
-      MessageAction: sendEmail ? 'RESEND' : 'SUPPRESS',
+      // If sendEmail is true, Cognito will send welcome email with temporary password
+      // If sendEmail is false, suppress the email (admin will provide password directly)
+      MessageAction: sendEmail ? undefined : 'SUPPRESS',
       DesiredDeliveryMediums: sendEmail ? ['EMAIL'] : undefined,
     });
 

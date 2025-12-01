@@ -184,7 +184,7 @@ export const adminApi = {
     username: string;
     givenName?: string;
     familyName?: string;
-    password: string;
+    password?: string;
     sendEmail?: boolean;
   }): Promise<any> => {
     const response = await apiClient.post('/admin/users', data);
