@@ -10,6 +10,8 @@ interface AuthContextType {
   user: CognitoUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdmin: boolean;
+  userGroups: string[];
   login: (username: string, password: string, newPassword?: string) => Promise<void>;
   logout: () => void;
   getToken: () => Promise<string | null>;
@@ -43,6 +45,23 @@ if (userPoolId && clientId) {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<CognitoUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userGroups, setUserGroups] = useState<string[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Helper function to extract groups from session
+  const updateUserGroups = (session: CognitoUserSession) => {
+    try {
+      const idToken = session.getIdToken();
+      const payload = idToken.decodePayload();
+      const groups = payload['cognito:groups'] || [];
+      setUserGroups(groups);
+      setIsAdmin(groups.includes('Admins'));
+    } catch (error) {
+      console.warn('Failed to extract user groups:', error);
+      setUserGroups([]);
+      setIsAdmin(false);
+    }
+  };
 
   useEffect(() => {
     // Check for existing session on mount
@@ -60,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
           }
           setUser(currentUser);
+          updateUserGroups(session);
           setIsLoading(false);
         });
       } else {
@@ -88,8 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       cognitoUser.authenticateUser(authDetails, {
-        onSuccess: () => {
+        onSuccess: (session: CognitoUserSession) => {
           setUser(cognitoUser);
+          updateUserGroups(session);
           resolve();
         },
         onFailure: (err: Error) => {
@@ -103,8 +124,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             delete userAttributes.email;
             
             cognitoUser.completeNewPasswordChallenge(newPassword, userAttributes, {
-              onSuccess: () => {
+              onSuccess: (session: CognitoUserSession) => {
                 setUser(cognitoUser);
+                updateUserGroups(session);
                 resolve();
               },
               onFailure: (err: Error) => {
@@ -128,6 +150,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       user.signOut();
       setUser(null);
+      setUserGroups([]);
+      setIsAdmin(false);
     }
   };
 
@@ -173,6 +197,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isAuthenticated: !!user,
         isLoading,
+        isAdmin,
+        userGroups,
         login,
         logout,
         getToken,

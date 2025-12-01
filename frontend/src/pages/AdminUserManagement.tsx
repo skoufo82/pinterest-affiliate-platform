@@ -32,6 +32,7 @@ export const AdminUserManagement: React.FC = () => {
     familyName: '',
     password: '',
     sendEmail: false,
+    role: 'Editor', // Default to Editor role
   });
 
   const [resetPasswordData, setResetPasswordData] = useState({
@@ -93,6 +94,7 @@ export const AdminUserManagement: React.FC = () => {
         familyName: '',
         password: '',
         sendEmail: false,
+        role: 'Editor',
       });
       loadUsers();
     } catch (error: any) {
@@ -304,6 +306,23 @@ export const AdminUserManagement: React.FC = () => {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Role *</label>
+              <select
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="Editor">Editor - Can manage products only</option>
+                <option value="Admin">Admin - Full access (manage users and products)</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.role === 'Editor' 
+                  ? 'Editors can create, edit, and delete products but cannot manage users'
+                  : 'Admins have full access to all features including user management'}
+              </p>
             </div>
 
             <div className="flex items-center p-4 bg-blue-50 rounded-md">

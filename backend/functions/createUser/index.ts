@@ -49,7 +49,7 @@ export const handler = async (
       return errorResponse(400, 'INVALID_REQUEST', 'Request body is required', event.requestContext.requestId);
     }
 
-    const { email, username, givenName, familyName, password, sendEmail = false } = JSON.parse(
+    const { email, username, givenName, familyName, password, sendEmail = false, role = 'Editor' } = JSON.parse(
       event.body
     );
 
@@ -81,15 +81,16 @@ export const handler = async (
     await client.send(createUserCommand);
     logger.info('User created successfully', { username });
 
-    // Add user to Admins group
+    // Add user to the specified group (Admins or Editors)
+    const groupName = role === 'Admin' ? 'Admins' : 'Editors';
     const addToGroupCommand = new AdminAddUserToGroupCommand({
       UserPoolId: USER_POOL_ID,
       Username: username,
-      GroupName: 'Admins',
+      GroupName: groupName,
     });
 
     await client.send(addToGroupCommand);
-    logger.info('User added to Admins group', { username });
+    logger.info(`User added to ${groupName} group`, { username, role });
 
     // Send custom welcome email if requested
     if (sendEmail) {

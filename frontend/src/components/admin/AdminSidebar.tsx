@@ -18,8 +18,17 @@ const navItems: NavItem[] = [
 export const AdminSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+  const { logout, user, isAdmin } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Filter nav items based on user role
+  const filteredNavItems = navItems.filter(item => {
+    // Only show Users menu to Admins
+    if (item.path === '/admin/users') {
+      return isAdmin;
+    }
+    return true;
+  });
 
   const isActive = (path: string) => {
     if (path === '/admin') {
@@ -79,7 +88,7 @@ export const AdminSidebar = () => {
             </h2>
             <nav>
               <ul className="space-y-2">
-                {navItems.map((item) => (
+                {filteredNavItems.map((item) => (
                   <li key={item.path}>
                     <Link
                       to={item.path}
@@ -105,6 +114,15 @@ export const AdminSidebar = () => {
               <p className="text-sm font-medium text-gray-800 truncate">
                 {user?.getUsername()}
               </p>
+              <div className="mt-1">
+                <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${
+                  isAdmin 
+                    ? 'bg-purple-100 text-purple-800' 
+                    : 'bg-blue-100 text-blue-800'
+                }`}>
+                  {isAdmin ? 'Admin' : 'Editor'}
+                </span>
+              </div>
             </div>
             <button
               onClick={handleLogout}
