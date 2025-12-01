@@ -57,6 +57,18 @@ export class BackendStack extends cdk.Stack {
       })
     );
 
+    // Grant SES permissions for sending emails
+    lambdaRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'ses:SendEmail',
+          'ses:SendRawEmail',
+        ],
+        resources: ['*'], // SES requires * for email sending
+      })
+    );
+
     // Common Lambda environment variables
     const commonEnvironment = {
       PRODUCTS_TABLE_NAME: productsTable.tableName,
