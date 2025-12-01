@@ -1,12 +1,8 @@
 name: Deploy Infrastructure
 
+# Disabled - using manual deployment with AWS SSO
+# To re-enable, set up AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in GitHub secrets
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'infrastructure/**'
-      - 'backend/**'
   workflow_dispatch:
 
 jobs:
