@@ -420,6 +420,207 @@ curl -X PUT "<uploadUrl>" \
 
 ---
 
+### User Management
+
+#### List Users
+
+Retrieve all users in the Cognito user pool.
+
+**Endpoint:** `GET /api/admin/users`
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/admin/users" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@example.com",
+      "givenName": "John",
+      "familyName": "Doe",
+      "enabled": true,
+      "status": "CONFIRMED",
+      "created": "2025-01-15T10:00:00Z",
+      "modified": "2025-01-15T10:00:00Z",
+      "groups": ["Admins"]
+    }
+  ]
+}
+```
+
+---
+
+#### Create User
+
+Create a new admin user in Cognito.
+
+**Endpoint:** `POST /api/admin/users`
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| username | string | Yes | Username (alphanumeric, 3-20 characters) |
+| email | string | Yes | Valid email address |
+| password | string | Yes | Password (min 8 chars, uppercase, lowercase, number) |
+| givenName | string | No | First name |
+| familyName | string | No | Last name |
+| sendEmail | boolean | No | Send welcome email (default: false) |
+
+**Example Request:**
+
+```bash
+curl -X POST "https://api.example.com/prod/api/admin/users" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "newadmin",
+    "email": "newadmin@example.com",
+    "password": "SecurePass123",
+    "givenName": "Jane",
+    "familyName": "Smith",
+    "sendEmail": false
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "username": "newadmin"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request` - Invalid input or user already exists
+- `401 Unauthorized` - Missing or invalid JWT token
+
+---
+
+#### Reset User Password
+
+Reset a user's password (admin operation).
+
+**Endpoint:** `POST /api/admin/users/:username/reset-password`
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| username | string | Yes | Username of the user |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| password | string | Yes | New password |
+| temporary | boolean | No | Require password change on next login (default: false) |
+
+**Example Request:**
+
+```bash
+curl -X POST "https://api.example.com/prod/api/admin/users/newadmin/reset-password" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "password": "NewSecurePass123",
+    "temporary": false
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "success": true,
+  "message": "Password reset successfully"
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found` - User does not exist
+- `400 Bad Request` - Invalid password format
+- `401 Unauthorized` - Missing or invalid JWT token
+
+---
+
+#### Delete User
+
+Delete a user from Cognito.
+
+**Endpoint:** `DELETE /api/admin/users/:username`
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| username | string | Yes | Username of the user to delete |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Example Request:**
+
+```bash
+curl -X DELETE "https://api.example.com/prod/api/admin/users/newadmin" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "success": true,
+  "message": "User deleted successfully"
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found` - User does not exist
+- `401 Unauthorized` - Missing or invalid JWT token
+
+**Notes:**
+- This is a permanent deletion
+- Cannot delete your own user account
+- User must not be the last admin
+
+---
+
 ## Error Codes
 
 | Code | Description |

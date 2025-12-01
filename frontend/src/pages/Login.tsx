@@ -5,8 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [requiresNewPassword, setRequiresNewPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,14 +22,33 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(username, password);
+      // If we're in the new password flow, validate passwords match
+      if (requiresNewPassword) {
+        if (newPassword !== confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+        if (newPassword.length < 8) {
+          setError('Password must be at least 8 characters');
+          setLoading(false);
+          return;
+        }
+      }
+
+      await login(username, password, requiresNewPassword ? newPassword : undefined);
       navigate(from, { replace: true });
     } catch (err: any) {
       console.error('Login error:', err);
-      if (err.name === 'NotAuthorizedException') {
+      if (err.name === 'NewPasswordRequiredException') {
+        setRequiresNewPassword(true);
+        setError('You must set a new password before continuing');
+      } else if (err.name === 'NotAuthorizedException') {
         setError('Incorrect username or password');
       } else if (err.name === 'UserNotFoundException') {
         setError('User not found');
+      } else if (err.name === 'InvalidPasswordException') {
+        setError('Password does not meet requirements: at least 8 characters with uppercase, lowercase, and numbers');
       } else {
         setError(err.message || 'Login failed. Please try again.');
       }
@@ -67,14 +89,15 @@ export const Login: React.FC = () => {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={requiresNewPassword}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="Enter your username"
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                {requiresNewPassword ? 'Current Password' : 'Password'}
               </label>
               <input
                 id="password"
@@ -84,10 +107,52 @@ export const Login: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={requiresNewPassword}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="Enter your password"
               />
             </div>
+
+            {requiresNewPassword && (
+              <>
+                <div>
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                    New Password *
+                  </label>
+                  <input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter new password"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Must be at least 8 characters with uppercase, lowercase, and numbers
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                    Confirm New Password *
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div>
@@ -102,19 +167,21 @@ export const Login: React.FC = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Signing in...
+                  {requiresNewPassword ? 'Setting new password...' : 'Signing in...'}
                 </span>
               ) : (
-                'Sign in'
+                requiresNewPassword ? 'Set New Password' : 'Sign in'
               )}
             </button>
           </div>
         </form>
 
-        <div className="text-center text-sm text-gray-600">
-          <p>Default credentials:</p>
-          <p className="font-mono text-xs mt-1">admin / Admin123!</p>
-        </div>
+        {!requiresNewPassword && (
+          <div className="text-center text-sm text-gray-600">
+            <p>Default credentials:</p>
+            <p className="font-mono text-xs mt-1">admin / Admin123!</p>
+          </div>
+        )}
       </div>
     </div>
   );

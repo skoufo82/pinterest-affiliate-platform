@@ -49,6 +49,7 @@ export class BackendStack extends cdk.Stack {
           'cognito-idp:AdminSetUserPassword',
           'cognito-idp:AdminAddUserToGroup',
           'cognito-idp:AdminRemoveUserFromGroup',
+          'cognito-idp:AdminListGroupsForUser',
           'cognito-idp:ListUsers',
           'cognito-idp:ListUsersInGroup',
         ],
@@ -74,52 +75,52 @@ export class BackendStack extends cdk.Stack {
       logRetention: logs.RetentionDays.ONE_WEEK,
     };
 
-    // Create Lambda functions
+    // Create Lambda functions - using compiled dist folder
     const getProductsFunction = new lambda.Function(this, 'GetProductsFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-getProducts',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/getProducts')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/getProducts/index.handler',
       description: 'Get all products with optional category filtering',
     });
 
     const getProductFunction = new lambda.Function(this, 'GetProductFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-getProduct',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/getProduct')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/getProduct/index.handler',
       description: 'Get a single product by ID',
     });
 
     const createProductFunction = new lambda.Function(this, 'CreateProductFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-createProduct',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/createProduct')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/createProduct/index.handler',
       description: 'Create a new product',
     });
 
     const updateProductFunction = new lambda.Function(this, 'UpdateProductFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-updateProduct',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/updateProduct')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/updateProduct/index.handler',
       description: 'Update an existing product',
     });
 
     const deleteProductFunction = new lambda.Function(this, 'DeleteProductFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-deleteProduct',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/deleteProduct')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/deleteProduct/index.handler',
       description: 'Delete a product',
     });
 
     const uploadImageFunction = new lambda.Function(this, 'UploadImageFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-uploadImage',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/uploadImage')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/uploadImage/index.handler',
       description: 'Generate presigned URL for image upload',
     });
 
@@ -127,33 +128,49 @@ export class BackendStack extends cdk.Stack {
     const createUserFunction = new lambda.Function(this, 'CreateUserFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-createUser',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/createUser')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/createUser/index.handler',
       description: 'Create a new admin user',
     });
 
     const listUsersFunction = new lambda.Function(this, 'ListUsersFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-listUsers',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/listUsers')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/listUsers/index.handler',
       description: 'List all users',
     });
 
     const deleteUserFunction = new lambda.Function(this, 'DeleteUserFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-deleteUser',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/deleteUser')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/deleteUser/index.handler',
       description: 'Delete a user',
     });
 
     const resetPasswordFunction = new lambda.Function(this, 'ResetPasswordFunction', {
       ...lambdaConfig,
       functionName: 'pinterest-affiliate-resetPassword',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/functions/resetPassword')),
-      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/resetPassword/index.handler',
       description: 'Reset user password',
+    });
+
+    const adminGetProductsFunction = new lambda.Function(this, 'AdminGetProductsFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-adminGetProducts',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/adminGetProducts/index.handler',
+      description: 'Get all products for admin (including unpublished)',
+    });
+
+    const getCategoriesFunction = new lambda.Function(this, 'GetCategoriesFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-getCategories',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/getCategories/index.handler',
+      description: 'Get all product categories',
     });
 
     // Create Cognito Authorizer for API Gateway
@@ -172,11 +189,8 @@ export class BackendStack extends cdk.Stack {
         loggingLevel: apigateway.MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
         metricsEnabled: true,
-        // Enable caching for GET endpoints
-        cachingEnabled: true,
-        cacheClusterEnabled: true,
-        cacheClusterSize: '0.5', // 0.5 GB cache
-        cacheTtl: cdk.Duration.minutes(5), // 5 minute default TTL
+        // Disable caching by default (will enable only for public endpoints)
+        cachingEnabled: false,
       },
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
@@ -238,9 +252,36 @@ export class BackendStack extends cdk.Stack {
       }
     );
 
+    // Categories endpoint
+    const categoriesResource = apiResource.addResource('categories');
+    categoriesResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getCategoriesFunction),
+      {
+        methodResponses: [
+          {
+            statusCode: '200',
+            responseParameters: {
+              'method.response.header.Cache-Control': true,
+            },
+          },
+        ],
+      }
+    );
+
     // Admin endpoints (protected by Cognito)
     const adminResource = apiResource.addResource('admin');
     const adminProductsResource = adminResource.addResource('products');
+
+    // GET all products (admin - includes unpublished)
+    adminProductsResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(adminGetProductsFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
 
     adminProductsResource.addMethod(
       'POST',

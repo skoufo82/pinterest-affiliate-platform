@@ -35,6 +35,7 @@ export const ProductForm = ({
     price: '',
     tags: [],
     published: false,
+    featured: false,
   });
 
   const [tagsInput, setTagsInput] = useState('');
@@ -52,6 +53,7 @@ export const ProductForm = ({
         price: product.price || '',
         tags: product.tags || [],
         published: product.published,
+        featured: product.featured || false,
       });
       setTagsInput(product.tags?.join(', ') || '');
     }
@@ -264,6 +266,21 @@ export const ProductForm = ({
         />
         <label htmlFor="published" className="ml-2 block text-sm text-gray-700">
           Publish product (make visible on public site)
+        </label>
+      </div>
+
+      {/* Featured Status */}
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="featured"
+          checked={formData.featured || false}
+          onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          disabled={loading}
+        />
+        <label htmlFor="featured" className="ml-2 block text-sm text-gray-700">
+          Feature product (show on homepage)
         </label>
       </div>
 

@@ -37,6 +37,18 @@ export const useAdminStore = create<AdminStore>((set) => ({
     
     try {
       const response = await adminApi.getAllProducts();
+      console.log('Admin products fetched:', response.products.length);
+      // Debug: log first product to see data structure
+      if (response.products.length > 0) {
+        console.log('Sample product:', {
+          id: response.products[0].id,
+          title: response.products[0].title,
+          published: response.products[0].published,
+          featured: response.products[0].featured,
+          publishedType: typeof response.products[0].published,
+          featuredType: typeof response.products[0].featured,
+        });
+      }
       set({
         products: response.products,
         loading: false,
@@ -137,20 +149,29 @@ export const useAdminStore = create<AdminStore>((set) => ({
     set({ loading: true, error: null });
     
     try {
+      console.log('Starting image upload:', { name: file.name, type: file.type, size: file.size });
+      
       // Get presigned URL
       const response = await adminApi.uploadImage(file.name, file.type);
+      console.log('Got presigned URL response:', response);
       
       // Upload file to S3
       await adminApi.uploadToS3(response.uploadUrl, file);
+      console.log('Successfully uploaded to S3');
       
       set({ loading: false, error: null });
       toast.success('Image uploaded successfully');
       return response.imageUrl;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to upload image';
       set({ loading: false, error: errorMessage });
       toast.error(errorMessage);
-      console.error('Error uploading image:', error);
       return null;
     }
   },

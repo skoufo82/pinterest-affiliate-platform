@@ -20,6 +20,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  define: {
+    // Fix for amazon-cognito-identity-js
+    global: 'globalThis',
+  },
   build: {
     // Optimize chunk splitting
     rollupOptions: {

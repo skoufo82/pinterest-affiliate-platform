@@ -2,7 +2,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { successResponse, errorResponse } from '../../shared/responses';
-import { Product } from '../../shared/types';
 import { createLogger } from '../../shared/logger';
 
 const client = new DynamoDBClient({ region: process.env.REGION || 'us-east-1' });
@@ -79,13 +78,23 @@ export async function handler(
       'price',
       'tags',
       'published',
+      'featured',
     ];
 
     allowedFields.forEach((field) => {
       if (data[field] !== undefined) {
         updateExpressions.push(`#${field} = :${field}`);
         expressionAttributeNames[`#${field}`] = field;
-        expressionAttributeValues[`:${field}`] = data[field];
+        // Convert published/featured boolean to string for GSI compatibility
+        const value = data[field];
+        if (field === 'published' || field === 'featured') {
+          // Log for debugging
+          logger.info(`Processing ${field}`, { value, type: typeof value });
+          expressionAttributeValues[`:${field}`] = 
+            typeof value === 'boolean' ? (value ? 'true' : 'false') : value;
+        } else {
+          expressionAttributeValues[`:${field}`] = value;
+        }
       }
     });
 
@@ -119,6 +128,15 @@ export async function handler(
 
     const updateResult = await docClient.send(updateCommand);
 
+    // Transform string booleans back to actual booleans for frontend
+    const product = updateResult.Attributes as any;
+    if (product.published) {
+      product.published = product.published === 'true';
+    }
+    if (product.featured) {
+      product.featured = product.featured === 'true';
+    }
+
     const duration = Date.now() - startTime;
     logger.info('Product updated successfully', {
       productId,
@@ -127,7 +145,7 @@ export async function handler(
     logger.logResponse(200, duration);
 
     return successResponse(200, {
-      product: updateResult.Attributes as Product,
+      product,
     });
   } catch (error) {
     const duration = Date.now() - startTime;

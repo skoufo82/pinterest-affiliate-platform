@@ -10,6 +10,7 @@ export interface Product {
   price?: string;
   tags?: string[];
   published: boolean;
+  featured?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -75,4 +76,5 @@ export interface ProductInput {
   price?: string;
   tags?: string[];
   published: boolean;
+  featured?: boolean;
 }

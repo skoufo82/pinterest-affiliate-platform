@@ -11,9 +11,12 @@ function Home() {
   const { products, loading, error, fetchProducts } = useProductStore();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // Fetch featured products on mount
+  // Filter for featured products only
+  const featuredProducts = products.filter(p => p.featured);
+
+  // Fetch featured products on mount with force refresh to bypass cache
   useEffect(() => {
-    fetchProducts(); // Fetch all published products
+    fetchProducts(undefined, true); // Force refresh to get latest data
   }, [fetchProducts]);
 
   // Update SEO metadata
@@ -72,14 +75,14 @@ function Home() {
         )}
 
         {/* Products Grid */}
-        {!loading && !error && products.length > 0 && (
-          <ProductGrid products={products} onProductClick={handleProductClick} />
+        {!loading && !error && featuredProducts.length > 0 && (
+          <ProductGrid products={featuredProducts} onProductClick={handleProductClick} />
         )}
 
         {/* Empty State */}
-        {!loading && !error && products.length === 0 && (
+        {!loading && !error && featuredProducts.length === 0 && (
           <div className="text-center py-12" role="status">
-            <p className="text-gray-600 text-lg">No products available yet.</p>
+            <p className="text-gray-600 text-lg">No featured products yet. Check back soon!</p>
           </div>
         )}
       </section>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAdminStore } from '@/stores/adminStore';
 import { ProductTable } from '@/components/admin/ProductTable';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
@@ -17,6 +17,7 @@ const categories = [
 
 function AdminProductList() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { products, loading, error, successMessage, fetchAllProducts, deleteProduct, clearMessages } = useAdminStore();
   
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -26,6 +27,15 @@ function AdminProductList() {
   useEffect(() => {
     fetchAllProducts();
   }, [fetchAllProducts]);
+
+  // Force refresh when navigating back from edit page
+  useEffect(() => {
+    if (location.state?.refresh) {
+      fetchAllProducts();
+      // Clear the state to prevent refetching on subsequent renders
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate, fetchAllProducts]);
 
   // Clear messages after 3 seconds
   useEffect(() => {

@@ -38,10 +38,16 @@ export async function handler(
       });
 
       const result = await docClient.send(queryCommand);
-      const allProducts = (result.Items || []) as Product[];
+      const allProducts = (result.Items || []) as any[];
       
-      // Filter for published products only
-      const publishedProducts = allProducts.filter(p => p.published === true);
+      // Transform and filter for published products only
+      const publishedProducts = allProducts
+        .map(p => ({
+          ...p,
+          published: p.published === 'true',
+          featured: p.featured === 'true',
+        }))
+        .filter(p => p.published);
       total = publishedProducts.length;
       
       // Apply pagination
@@ -59,10 +65,14 @@ export async function handler(
       });
 
       const result = await docClient.send(queryCommand);
-      const allProducts = (result.Items || []) as Product[];
+      const allProducts = (result.Items || []) as any[];
       
-      // Filter to ensure published is actually true (boolean)
-      const publishedProducts = allProducts.filter(p => p.published === true);
+      // Transform string booleans to actual booleans
+      const publishedProducts = allProducts.map(p => ({
+        ...p,
+        published: p.published === 'true',
+        featured: p.featured === 'true',
+      }));
       total = publishedProducts.length;
       
       // Apply pagination

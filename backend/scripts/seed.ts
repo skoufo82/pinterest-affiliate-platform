@@ -12,12 +12,12 @@
  */
 
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
 const region = process.env.AWS_REGION || 'us-east-1';
 const tableName = process.env.DYNAMODB_TABLE_NAME;
-const s3BucketName = process.env.S3_BUCKET_NAME;
+// const s3BucketName = process.env.S3_BUCKET_NAME;
 
 if (!tableName) {
   console.error('Error: DYNAMODB_TABLE_NAME environment variable is required');

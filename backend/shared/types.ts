@@ -9,7 +9,8 @@ export interface Product {
   amazonLink: string;
   price?: string;
   tags?: string[];
-  published: boolean;
+  published: string; // 'true' or 'false' as string for DynamoDB GSI compatibility
+  featured?: string; // 'true' or 'false' as string for DynamoDB GSI compatibility
   createdAt: string;
   updatedAt: string;
 }

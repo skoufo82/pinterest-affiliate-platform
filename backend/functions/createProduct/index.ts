@@ -58,7 +58,8 @@ export async function handler(
       amazonLink: data.amazonLink,
       price: data.price,
       tags: data.tags,
-      published: data.published,
+      published: data.published ? 'true' : 'false', // Convert boolean to string for GSI
+      featured: data.featured ? 'true' : 'false', // Convert boolean to string
       createdAt: now,
       updatedAt: now,
     };
@@ -71,6 +72,13 @@ export async function handler(
 
     await docClient.send(command);
 
+    // Transform string booleans back to actual booleans for frontend response
+    const responseProduct = {
+      ...product,
+      published: product.published === 'true',
+      featured: product.featured === 'true',
+    };
+
     const duration = Date.now() - startTime;
     logger.info('Product created successfully', {
       productId: product.id,
@@ -80,7 +88,7 @@ export async function handler(
     logger.logResponse(201, duration);
 
     return successResponse(201, {
-      product,
+      product: responseProduct,
     });
   } catch (error) {
     const duration = Date.now() - startTime;

@@ -7,7 +7,7 @@ interface ProductTableProps {
   onDelete: (id: string) => void;
 }
 
-type SortField = 'title' | 'category' | 'published' | 'createdAt';
+type SortField = 'title' | 'category' | 'published' | 'featured' | 'createdAt';
 type SortDirection = 'asc' | 'desc';
 
 export const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
@@ -86,6 +86,14 @@ export const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) 
             </th>
             <th
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              onClick={() => handleSort('featured')}
+            >
+              <div className="flex items-center gap-2">
+                Featured <SortIcon field="featured" />
+              </div>
+            </th>
+            <th
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
               onClick={() => handleSort('createdAt')}
             >
               <div className="flex items-center gap-2">
@@ -100,7 +108,7 @@ export const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) 
         <tbody className="bg-white divide-y divide-gray-200">
           {sortedProducts.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                 No products found
               </td>
             </tr>
@@ -122,6 +130,17 @@ export const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) 
                     }`}
                   >
                     {product.published ? 'Published' : 'Draft'}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      product.featured
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {product.featured ? 'Featured' : 'Not Featured'}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

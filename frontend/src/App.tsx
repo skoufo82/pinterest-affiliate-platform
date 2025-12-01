@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect } from 'react';
 // Components
 import { Header, Footer } from '@/components/public';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 
 // Context
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -22,6 +23,7 @@ const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const AdminProductList = lazy(() => import('@/pages/AdminProductList'));
 const AdminProductNew = lazy(() => import('@/pages/AdminProductNew'));
 const AdminProductEdit = lazy(() => import('@/pages/AdminProductEdit'));
+const AdminUserManagement = lazy(() => import('@/pages/AdminUserManagement'));
 
 // 404 page
 import NotFound from '@/pages/NotFound';
@@ -102,9 +104,11 @@ function App() {
               path="/admin"
               element={
                 <ProtectedRoute>
-                  <Suspense fallback={<PageLoader />}>
-                    <AdminDashboard />
-                  </Suspense>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminDashboard />
+                    </Suspense>
+                  </AdminLayout>
                 </ProtectedRoute>
               }
             />
@@ -112,9 +116,11 @@ function App() {
               path="/admin/products"
               element={
                 <ProtectedRoute>
-                  <Suspense fallback={<PageLoader />}>
-                    <AdminProductList />
-                  </Suspense>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminProductList />
+                    </Suspense>
+                  </AdminLayout>
                 </ProtectedRoute>
               }
             />
@@ -122,9 +128,11 @@ function App() {
               path="/admin/products/new"
               element={
                 <ProtectedRoute>
-                  <Suspense fallback={<PageLoader />}>
-                    <AdminProductNew />
-                  </Suspense>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminProductNew />
+                    </Suspense>
+                  </AdminLayout>
                 </ProtectedRoute>
               }
             />
@@ -132,9 +140,23 @@ function App() {
               path="/admin/products/:id/edit"
               element={
                 <ProtectedRoute>
-                  <Suspense fallback={<PageLoader />}>
-                    <AdminProductEdit />
-                  </Suspense>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminProductEdit />
+                    </Suspense>
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminUserManagement />
+                    </Suspense>
+                  </AdminLayout>
                 </ProtectedRoute>
               }
             />

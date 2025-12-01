@@ -10,7 +10,7 @@ interface AuthContextType {
   user: CognitoUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, newPassword?: string) => Promise<void>;
   logout: () => void;
   getToken: () => Promise<string | null>;
   refreshSession: () => Promise<void>;
@@ -18,10 +18,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const userPool = new CognitoUserPool({
-  UserPoolId: (import.meta as any).env.VITE_USER_POOL_ID,
-  ClientId: (import.meta as any).env.VITE_USER_POOL_CLIENT_ID,
-});
+// Get environment variables
+const userPoolId = (import.meta as { env?: { VITE_USER_POOL_ID?: string } }).env?.VITE_USER_POOL_ID;
+const clientId = (import.meta as { env?: { VITE_USER_POOL_CLIENT_ID?: string } }).env?.VITE_USER_POOL_CLIENT_ID;
+
+// Initialize user pool with error handling
+let userPool: CognitoUserPool | null = null;
+
+if (userPoolId && clientId) {
+  try {
+    userPool = new CognitoUserPool({
+      UserPoolId: userPoolId,
+      ClientId: clientId,
+    });
+  } catch (error) {
+    console.warn('Failed to initialize Cognito User Pool:', error);
+  }
+} else {
+  console.warn('Cognito environment variables not found. Authentication will be disabled.');
+  console.warn('VITE_USER_POOL_ID:', userPoolId);
+  console.warn('VITE_USER_POOL_CLIENT_ID:', clientId);
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<CognitoUser | null>(null);
@@ -29,22 +46,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check for existing session on mount
-    const currentUser = userPool.getCurrentUser();
-    if (currentUser) {
-      currentUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
-        if (err || !session?.isValid()) {
+    if (!userPool) {
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      const currentUser = userPool.getCurrentUser();
+      if (currentUser) {
+        currentUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
+          if (err || !session?.isValid()) {
+            setIsLoading(false);
+            return;
+          }
+          setUser(currentUser);
           setIsLoading(false);
-          return;
-        }
-        setUser(currentUser);
+        });
+      } else {
         setIsLoading(false);
-      });
-    } else {
+      }
+    } catch (error) {
+      console.warn('Failed to get current user:', error);
       setIsLoading(false);
     }
   }, []);
 
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (username: string, password: string, newPassword?: string): Promise<void> => {
+    if (!userPool) {
+      throw new Error('Authentication is not available in private browsing mode. Please use a regular browser window.');
+    }
+    
     return new Promise((resolve, reject) => {
       const cognitoUser = new CognitoUser({
         Username: username,
@@ -64,9 +95,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         onFailure: (err: Error) => {
           reject(err);
         },
-        newPasswordRequired: () => {
-          // Handle new password required
-          reject(new Error('New password required. Please contact administrator.'));
+        newPasswordRequired: (userAttributes, _requiredAttributes) => {
+          // If a new password was provided, complete the challenge
+          if (newPassword) {
+            // Remove attributes that shouldn't be updated
+            delete userAttributes.email_verified;
+            delete userAttributes.email;
+            
+            cognitoUser.completeNewPasswordChallenge(newPassword, userAttributes, {
+              onSuccess: () => {
+                setUser(cognitoUser);
+                resolve();
+              },
+              onFailure: (err: Error) => {
+                reject(err);
+              },
+            });
+          } else {
+            // Reject with a special error that indicates new password is required
+            const error: any = new Error('NEW_PASSWORD_REQUIRED');
+            error.name = 'NewPasswordRequiredException';
+            error.userAttributes = userAttributes;
+            error.cognitoUser = cognitoUser;
+            reject(error);
+          }
         },
       });
     });

@@ -84,8 +84,8 @@ function AdminDashboard() {
         </div>
       </div>
 
-      {/* Navigation to Product Management */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <Link
           to="/admin/products"
           className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
@@ -99,6 +99,13 @@ function AdminDashboard() {
         >
           <h2 className="text-lg sm:text-xl font-semibold mb-2 text-blue-900">Add New Product</h2>
           <p className="text-sm sm:text-base text-blue-700">Create a new product listing</p>
+        </Link>
+        <Link
+          to="/admin/users"
+          className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+        >
+          <h2 className="text-lg sm:text-xl font-semibold mb-2">Manage Users</h2>
+          <p className="text-sm sm:text-base text-gray-600">Create and manage admin users</p>
         </Link>
       </div>
     </div>

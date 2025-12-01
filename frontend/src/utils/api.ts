@@ -130,7 +130,10 @@ export const api = {
 export const adminApi = {
   // Get all products (including unpublished)
   getAllProducts: async (): Promise<ProductsResponse> => {
-    const response = await apiClient.get<ProductsResponse>('/admin/products');
+    // Add timestamp to prevent caching
+    const response = await apiClient.get<ProductsResponse>('/admin/products', {
+      params: { _t: Date.now() }
+    });
     return response.data;
   },
 

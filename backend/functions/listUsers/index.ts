@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { successResponse, errorResponse } from '../../shared/responses';
-import { logger } from '../../shared/logger';
+import { createLogger } from '../../shared/logger';
 
 const client = new CognitoIdentityProviderClient({ region: process.env.REGION });
 const USER_POOL_ID = process.env.USER_POOL_ID!;
@@ -13,6 +13,9 @@ const USER_POOL_ID = process.env.USER_POOL_ID!;
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+  const logger = createLogger(event.requestContext.requestId);
+  logger.logRequest(event);
+
   try {
     logger.info('List users request');
 
@@ -50,12 +53,12 @@ export const handler = async (
 
     logger.info('Users listed successfully', { count: usersWithGroups.length });
 
-    return successResponse({
+    return successResponse(200, {
       users: usersWithGroups,
       count: usersWithGroups.length,
     });
   } catch (error: any) {
-    logger.error('Error listing users', { error: error.message });
-    return errorResponse(500, `Failed to list users: ${error.message}`);
+    logger.error('Error listing users', error);
+    return errorResponse(500, 'INTERNAL_ERROR', `Failed to list users: ${error.message}`, event.requestContext.requestId);
   }
 };

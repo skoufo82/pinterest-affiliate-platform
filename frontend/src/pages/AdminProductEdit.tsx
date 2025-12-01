@@ -53,8 +53,10 @@ function AdminProductEdit() {
     const updatedProduct = await updateProduct(id, data);
     
     if (updatedProduct) {
-      // Redirect to dashboard on success
-      navigate('/admin', { replace: true });
+      // Update local state immediately with the response
+      setProduct(updatedProduct);
+      // Force refresh of product list by navigating with state
+      navigate('/admin/products', { replace: true, state: { refresh: true } });
     }
   };
 

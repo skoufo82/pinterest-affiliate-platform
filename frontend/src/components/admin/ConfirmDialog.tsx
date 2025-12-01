@@ -4,8 +4,10 @@ interface ConfirmDialogProps {
   title?: string;
   confirmText?: string;
   cancelText?: string;
+  confirmButtonClass?: string;
   onConfirm: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  onClose?: () => void;
   variant?: 'danger' | 'warning' | 'info';
 }
 
@@ -15,10 +17,16 @@ export const ConfirmDialog = ({
   title = 'Confirm Action',
   confirmText = 'Confirm',
   cancelText = 'Cancel',
+  confirmButtonClass,
   onConfirm,
   onCancel,
+  onClose,
   variant = 'warning',
 }: ConfirmDialogProps) => {
+  const handleCancel = () => {
+    if (onCancel) onCancel();
+    if (onClose) onClose();
+  };
   if (!isOpen) return null;
 
   const variantStyles = {
@@ -40,7 +48,7 @@ export const ConfirmDialog = ({
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
-      onCancel();
+      handleCancel();
     }
   };
 
@@ -78,14 +86,14 @@ export const ConfirmDialog = ({
         {/* Actions */}
         <div className="flex gap-3 mt-6">
           <button
-            onClick={onCancel}
+            onClick={handleCancel}
             className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 ${styles.button}`}
+            className={`flex-1 px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 ${confirmButtonClass || styles.button}`}
           >
             {confirmText}
           </button>
