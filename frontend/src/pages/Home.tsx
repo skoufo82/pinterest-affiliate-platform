@@ -1,15 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProductStore } from '@/stores/productStore';
-import { ProductGrid, ProductModal } from '@/components/public';
+import { ProductGrid } from '@/components/public';
 import { ProductGridSkeleton } from '@/components/common';
-import { Product } from '@/types';
 import { updateSEOMetadata, getHomeSEO } from '@/utils/seo';
 
 function Home() {
   const navigate = useNavigate();
   const { products, loading, error, fetchProducts } = useProductStore();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Filter for featured products only
   const featuredProducts = products.filter(p => p.featured);
@@ -23,14 +21,6 @@ function Home() {
   useEffect(() => {
     updateSEOMetadata(getHomeSEO());
   }, []);
-
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedProduct(null);
-  };
 
   const handleCategoriesClick = () => {
     navigate('/categories');
@@ -76,7 +66,7 @@ function Home() {
 
         {/* Products Grid */}
         {!loading && !error && featuredProducts.length > 0 && (
-          <ProductGrid products={featuredProducts} onProductClick={handleProductClick} />
+          <ProductGrid products={featuredProducts} />
         )}
 
         {/* Empty State */}
@@ -86,15 +76,6 @@ function Home() {
           </div>
         )}
       </section>
-
-      {/* Product Modal */}
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          isOpen={!!selectedProduct}
-          onClose={handleCloseModal}
-        />
-      )}
     </div>
   );
 }

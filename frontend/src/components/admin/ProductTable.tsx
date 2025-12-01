@@ -146,10 +146,21 @@ export const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) 
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(product.createdAt).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                  <button
+                    onClick={() => {
+                      const url = `${window.location.origin}/products/${product.id}`;
+                      navigator.clipboard.writeText(url);
+                      alert('Product link copied! You can now paste this in Pinterest.');
+                    }}
+                    className="text-green-600 hover:text-green-900"
+                    title="Copy product link for Pinterest"
+                  >
+                    📋 Copy Link
+                  </button>
                   <button
                     onClick={() => onEdit(product.id)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
+                    className="text-blue-600 hover:text-blue-900"
                   >
                     Edit
                   </button>

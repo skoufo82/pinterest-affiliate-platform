@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { LazyImage } from './LazyImage';
 
@@ -8,26 +9,37 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const handleShopNowClick = (e: React.MouseEvent) => {
-    // Prevent triggering onClick if it exists
+    // Prevent triggering navigation
+    e.preventDefault();
     e.stopPropagation();
     // Open Amazon link in new tab
     window.open(product.amazonLink, '_blank', 'noopener,noreferrer');
   };
 
+  // If onClick is provided, use the old modal behavior, otherwise link to product page
+  const CardWrapper = onClick ? 'article' : Link;
+  const wrapperProps = onClick
+    ? {
+        className: "bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer block",
+        onClick,
+        role: "button" as const,
+        tabIndex: 0,
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+            e.preventDefault();
+            onClick();
+          }
+        },
+        'aria-label': `View details for ${product.title}`,
+      }
+    : {
+        to: `/products/${product.id}`,
+        className: "bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer block",
+        'aria-label': `View details for ${product.title}`,
+      };
+
   return (
-    <article
-      className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && onClick) {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      aria-label={`View details for ${product.title}`}
-    >
+    <CardWrapper {...wrapperProps as any}>
       {/* Product Image */}
       <div className="relative overflow-hidden">
         <LazyImage
@@ -64,6 +76,6 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
           Shop Now
         </button>
       </div>
-    </article>
+    </CardWrapper>
   );
 };
