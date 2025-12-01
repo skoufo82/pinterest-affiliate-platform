@@ -2,14 +2,41 @@ import {
   CognitoIdentityProviderClient,
   AdminCreateUserCommand,
   AdminAddUserToGroupCommand,
-  AdminSetUserPasswordCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { successResponse, errorResponse } from '../../shared/responses';
 import { createLogger } from '../../shared/logger';
+import { generateWelcomeEmail } from '../../shared/emailTemplates';
 
 const client = new CognitoIdentityProviderClient({ region: process.env.REGION });
+const sesClient = new SESClient({ region: process.env.REGION });
 const USER_POOL_ID = process.env.USER_POOL_ID!;
+
+// Generate a secure temporary password
+function generateTemporaryPassword(): string {
+  const length = 12;
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const special = '!@#$%^&*';
+  const allChars = uppercase + lowercase + numbers + special;
+  
+  // Ensure at least one of each type
+  let password = '';
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += special[Math.floor(Math.random() * special.length)];
+  
+  // Fill the rest randomly
+  for (let i = password.length; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+  
+  // Shuffle the password
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+}
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -33,7 +60,10 @@ export const handler = async (
 
     logger.info('Creating user', { username, email });
 
-    // Create user
+    // Generate a temporary password if not provided
+    const temporaryPassword = password || generateTemporaryPassword();
+
+    // Create user - always suppress Cognito's email since we'll send our own
     const createUserCommand = new AdminCreateUserCommand({
       UserPoolId: USER_POOL_ID,
       Username: username,
@@ -43,26 +73,13 @@ export const handler = async (
         ...(givenName ? [{ Name: 'given_name', Value: givenName }] : []),
         ...(familyName ? [{ Name: 'family_name', Value: familyName }] : []),
       ],
-      // If sendEmail is true, Cognito will send welcome email with temporary password
-      // If sendEmail is false, suppress the email (admin will provide password directly)
-      MessageAction: sendEmail ? undefined : 'SUPPRESS',
-      DesiredDeliveryMediums: sendEmail ? ['EMAIL'] : undefined,
+      // Always suppress Cognito's default email - we'll send our own custom email
+      MessageAction: 'SUPPRESS',
+      TemporaryPassword: temporaryPassword,
     });
 
     await client.send(createUserCommand);
     logger.info('User created successfully', { username });
-
-    // Set permanent password if provided
-    if (password) {
-      const setPasswordCommand = new AdminSetUserPasswordCommand({
-        UserPoolId: USER_POOL_ID,
-        Username: username,
-        Password: password,
-        Permanent: true,
-      });
-      await client.send(setPasswordCommand);
-      logger.info('Password set for user', { username });
-    }
 
     // Add user to Admins group
     const addToGroupCommand = new AdminAddUserToGroupCommand({
@@ -74,10 +91,56 @@ export const handler = async (
     await client.send(addToGroupCommand);
     logger.info('User added to Admins group', { username });
 
+    // Send custom welcome email if requested
+    if (sendEmail) {
+      try {
+        const loginUrl = 'https://www.koufobunch.com/login';
+        
+        const emailTemplate = generateWelcomeEmail({
+          username,
+          email,
+          temporaryPassword,
+          loginUrl,
+          firstName: givenName,
+          lastName: familyName,
+        });
+
+        const sendEmailCommand = new SendEmailCommand({
+          Source: 'noreply@koufobunch.com',
+          Destination: {
+            ToAddresses: [email],
+          },
+          Message: {
+            Subject: {
+              Data: emailTemplate.subject,
+              Charset: 'UTF-8',
+            },
+            Body: {
+              Html: {
+                Data: emailTemplate.html,
+                Charset: 'UTF-8',
+              },
+              Text: {
+                Data: emailTemplate.text,
+                Charset: 'UTF-8',
+              },
+            },
+          },
+        });
+
+        await sesClient.send(sendEmailCommand);
+        logger.info('Welcome email sent successfully', { email, username });
+      } catch (emailError: any) {
+        logger.error('Failed to send welcome email', emailError);
+        // Don't fail the user creation if email fails
+      }
+    }
+
     return successResponse(200, {
       message: 'User created successfully',
       username,
       email,
+      ...(sendEmail ? {} : { temporaryPassword }), // Only return password if email wasn't sent
     });
   } catch (error: any) {
     logger.error('Error creating user', error);
