@@ -16,7 +16,7 @@ export const Footer = () => {
         <div className="flex flex-col md:flex-row items-center justify-between border-t border-gray-700 pt-6">
           <div className="mb-4 md:mb-0">
             <p className="text-sm">
-              © {new Date().getFullYear()} PinShop. All rights reserved.
+              © {new Date().getFullYear()} KoufoBunch. All rights reserved.
             </p>
           </div>
 

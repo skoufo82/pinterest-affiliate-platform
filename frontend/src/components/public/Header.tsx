@@ -13,9 +13,9 @@ export const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2" aria-label="PinShop home">
+          <Link to="/" className="flex items-center space-x-2" aria-label="KoufoBunch home">
             <div className="text-2xl font-bold text-pink-600">
-              PinShop
+              KoufoBunch
             </div>
           </Link>
 

@@ -68,7 +68,7 @@ function updateMetaTag(
  */
 export function getHomeSEO(): SEOMetadata {
   return {
-    title: 'Pinterest Affiliate Platform - Curated Products You\'ll Love',
+    title: 'KoufoBunch - Curated Products You\'ll Love',
     description: 'Discover amazing products curated just for you. Browse our collection of handpicked items across multiple categories.',
     type: 'website',
   };
@@ -79,7 +79,7 @@ export function getHomeSEO(): SEOMetadata {
  */
 export function getCategoriesSEO(): SEOMetadata {
   return {
-    title: 'Browse Categories - Pinterest Affiliate Platform',
+    title: 'Browse Categories - KoufoBunch',
     description: 'Explore our product categories and find exactly what you\'re looking for.',
     type: 'website',
   };
@@ -90,7 +90,7 @@ export function getCategoriesSEO(): SEOMetadata {
  */
 export function getCategoryProductsSEO(categoryName: string): SEOMetadata {
   return {
-    title: `${categoryName} Products - Pinterest Affiliate Platform`,
+    title: `${categoryName} Products - KoufoBunch`,
     description: `Browse our curated collection of ${categoryName.toLowerCase()} products. Find the perfect items for your needs.`,
     type: 'website',
   };
@@ -101,7 +101,7 @@ export function getCategoryProductsSEO(categoryName: string): SEOMetadata {
  */
 export function getProductSEO(product: Product): SEOMetadata {
   return {
-    title: `${product.title} - Pinterest Affiliate Platform`,
+    title: `${product.title} - KoufoBunch`,
     description: product.description.substring(0, 160), // Limit to 160 chars for meta description
     image: product.imageUrl,
     type: 'product',

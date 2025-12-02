@@ -30,24 +30,18 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section - Enhanced */}
-      <section className="relative bg-gradient-to-br from-pink-500 via-rose-500 to-purple-600 text-white py-20 md:py-32 overflow-hidden" aria-label="Hero section">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight">
-            Discover Amazing<br className="hidden sm:block" /> Products
+      {/* Compact Hero Section */}
+      <section className="relative bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white py-8 md:py-12" aria-label="Hero section">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
+            Discover Amazing Products
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl mb-10 text-pink-50 max-w-2xl mx-auto leading-relaxed">
-            Curated collections of trending products you&apos;ll absolutely love
+          <p className="text-sm sm:text-base md:text-lg mb-4 text-pink-50 max-w-xl mx-auto">
+            Curated collections of trending products you&apos;ll love
           </p>
           <button
             onClick={handleCategoriesClick}
-            className="bg-white text-pink-600 font-bold py-4 px-10 rounded-full hover:bg-pink-50 transition-all duration-200 shadow-2xl hover:shadow-3xl hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2 focus:ring-offset-pink-600 active:scale-95 text-lg"
+            className="bg-white text-pink-600 font-semibold py-2 px-6 rounded-full hover:bg-pink-50 transition-all duration-200 shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white text-sm md:text-base"
             aria-label="Browse product categories"
           >
             Browse Categories →
