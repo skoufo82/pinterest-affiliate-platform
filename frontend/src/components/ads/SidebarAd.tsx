@@ -6,7 +6,7 @@ export const SidebarAd: React.FC = () => {
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <p className="text-xs text-gray-500 text-center mb-2">Advertisement</p>
         <AdSenseAd
-          adSlot="YOUR_SIDEBAR_AD_SLOT" // Replace with actual ad slot from AdSense
+          adSlot="8841711148"
           adFormat="rectangle"
           style={{ minHeight: '250px', minWidth: '300px' }}
         />
