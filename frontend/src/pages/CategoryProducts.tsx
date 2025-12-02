@@ -6,6 +6,8 @@ import { ProductGridSkeleton } from '@/components/common';
 import { Product } from '@/types';
 import { slugToTitle } from '@/utils/slug';
 import { updateSEOMetadata, getCategoryProductsSEO } from '@/utils/seo';
+import { SidebarAd } from '@/components/ads/SidebarAd';
+import { InFeedAd } from '@/components/ads/InFeedAd';
 
 function CategoryProducts() {
   const { category } = useParams<{ category: string }>();
@@ -60,52 +62,65 @@ function CategoryProducts() {
           </p>
         </div>
 
-        {/* Loading State with Skeleton */}
-        {loading && <ProductGridSkeleton count={6} />}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Loading State with Skeleton */}
+            {loading && <ProductGridSkeleton count={6} />}
 
-        {/* Error State */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center max-w-2xl mx-auto">
-            <p className="font-semibold">Error loading products</p>
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Products Grid */}
-        {!loading && !error && displayedProducts.length > 0 && (
-          <>
-            <ProductGrid
-              products={displayedProducts}
-              onProductClick={handleProductClick}
-            />
-
-            {/* Load More Button (for pagination when >20 products) */}
-            {hasMore && (
-              <div className="flex justify-center mt-12">
-                <button
-                  onClick={handleLoadMore}
-                  className="bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200"
-                >
-                  Load More Products
-                </button>
+            {/* Error State */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center max-w-2xl mx-auto">
+                <p className="font-semibold">Error loading products</p>
+                <p className="text-sm">{error}</p>
               </div>
             )}
 
-            {/* Product Count */}
-            <div className="text-center mt-8 text-gray-600">
-              Showing {displayedProducts.length} of {products.length} products
-            </div>
-          </>
-        )}
+            {/* Products Grid with In-Feed Ads */}
+            {!loading && !error && displayedProducts.length > 0 && (
+              <>
+                <ProductGrid
+                  products={displayedProducts}
+                  onProductClick={handleProductClick}
+                />
 
-        {/* Empty State */}
-        {!loading && !error && products.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">
-              No products found in this category.
-            </p>
+                {/* In-Feed Ad after products */}
+                {displayedProducts.length >= 8 && <InFeedAd />}
+
+                {/* Load More Button (for pagination when >20 products) */}
+                {hasMore && (
+                  <div className="flex justify-center mt-12">
+                    <button
+                      onClick={handleLoadMore}
+                      className="bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200"
+                    >
+                      Load More Products
+                    </button>
+                  </div>
+                )}
+
+                {/* Product Count */}
+                <div className="text-center mt-8 text-gray-600">
+                  Showing {displayedProducts.length} of {products.length} products
+                </div>
+              </>
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && products.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-600 text-lg">
+                  No products found in this category.
+                </p>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Sidebar with Ad */}
+          <aside className="lg:w-80 hidden lg:block">
+            <SidebarAd />
+          </aside>
+        </div>
       </div>
 
       {/* Product Modal */}

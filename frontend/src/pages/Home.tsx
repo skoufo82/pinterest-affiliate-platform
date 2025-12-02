@@ -4,6 +4,8 @@ import { useProductStore } from '@/stores/productStore';
 import { ProductGrid } from '@/components/public';
 import { ProductGridSkeleton } from '@/components/common';
 import { updateSEOMetadata, getHomeSEO } from '@/utils/seo';
+import { SidebarAd } from '@/components/ads/SidebarAd';
+import { BannerAd } from '@/components/ads/BannerAd';
 
 function Home() {
   const navigate = useNavigate();
@@ -47,34 +49,47 @@ function Home() {
         </div>
       </section>
 
-      {/* Featured Products Section */}
+      {/* Banner Ad */}
+      <BannerAd />
+
+      {/* Featured Products Section with Sidebar */}
       <section className="container mx-auto px-4 py-12" aria-labelledby="featured-products-heading">
-        <h2 id="featured-products-heading" className="text-3xl font-bold text-gray-900 mb-8 text-center">
-          Featured Products
-        </h2>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main Content */}
+          <div className="flex-1">
+            <h2 id="featured-products-heading" className="text-3xl font-bold text-gray-900 mb-8 text-center lg:text-left">
+              Featured Products
+            </h2>
 
-        {/* Loading State with Skeleton */}
-        {loading && <ProductGridSkeleton count={6} />}
+            {/* Loading State with Skeleton */}
+            {loading && <ProductGridSkeleton count={6} />}
 
-        {/* Error State */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center" role="alert">
-            <p className="font-semibold">Error loading products</p>
-            <p className="text-sm">{error}</p>
+            {/* Error State */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center" role="alert">
+                <p className="font-semibold">Error loading products</p>
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Products Grid */}
+            {!loading && !error && featuredProducts.length > 0 && (
+              <ProductGrid products={featuredProducts} />
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && featuredProducts.length === 0 && (
+              <div className="text-center py-12" role="status">
+                <p className="text-gray-600 text-lg">No featured products yet. Check back soon!</p>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Products Grid */}
-        {!loading && !error && featuredProducts.length > 0 && (
-          <ProductGrid products={featuredProducts} />
-        )}
-
-        {/* Empty State */}
-        {!loading && !error && featuredProducts.length === 0 && (
-          <div className="text-center py-12" role="status">
-            <p className="text-gray-600 text-lg">No featured products yet. Check back soon!</p>
-          </div>
-        )}
+          {/* Sidebar with Ad */}
+          <aside className="lg:w-80 hidden lg:block">
+            <SidebarAd />
+          </aside>
+        </div>
       </section>
     </div>
   );
