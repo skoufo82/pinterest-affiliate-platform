@@ -20,7 +20,7 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const CardWrapper = onClick ? 'article' : Link;
   const wrapperProps = onClick
     ? {
-        className: "bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer block",
+        className: "bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 cursor-pointer block group",
         onClick,
         role: "button" as const,
         tabIndex: 0,
@@ -34,43 +34,43 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
       }
     : {
         to: `/products/${product.id}`,
-        className: "bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer block",
+        className: "bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 cursor-pointer block group",
         'aria-label': `View details for ${product.title}`,
       };
 
   return (
     <CardWrapper {...wrapperProps as any}>
       {/* Product Image */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden bg-gray-100">
         <LazyImage
           src={product.imageUrl}
           alt={product.title}
-          className="w-full h-auto object-cover"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
       </div>
 
       {/* Product Info */}
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+      <div className="p-4 sm:p-5">
+        <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 line-clamp-2 leading-snug">
           {product.title}
         </h3>
         
-        <p className="text-gray-600 text-sm mb-3 line-clamp-3">
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">
           {product.description}
         </p>
 
         {/* Price (conditional) */}
         {product.price && (
-          <div className="text-xl font-bold text-pink-600 mb-3" aria-label={`Price: ${product.price}`}>
+          <div className="text-xl sm:text-2xl font-bold text-pink-600 mb-4" aria-label={`Price: ${product.price}`}>
             {product.price}
           </div>
         )}
 
-        {/* Shop Now Button */}
+        {/* Shop Now Button - Enhanced for mobile */}
         <button
           onClick={handleShopNowClick}
-          className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+          className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold py-3 sm:py-3.5 px-4 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 shadow-md hover:shadow-lg active:scale-95"
           aria-label={`Shop now for ${product.title} on Amazon`}
         >
           Shop Now

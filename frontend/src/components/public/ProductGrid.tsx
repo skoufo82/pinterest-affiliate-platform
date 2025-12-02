@@ -8,11 +8,13 @@ interface ProductGridProps {
 }
 
 export const ProductGrid = ({ products, onProductClick }: ProductGridProps) => {
-  // Responsive breakpoints for masonry columns
+  // Responsive breakpoints for masonry columns - optimized for mobile
   const breakpointColumns = {
-    default: 3,  // Desktop: 3 columns
-    1024: 2,     // Tablet: 2 columns
-    640: 1       // Mobile: 1 column
+    default: 4,  // Large Desktop: 4 columns
+    1280: 3,     // Desktop: 3 columns
+    1024: 3,     // Tablet: 3 columns
+    768: 2,      // Small tablet: 2 columns
+    640: 2       // Mobile: 2 columns (better than 1 for Pinterest-style)
   };
 
   return (
