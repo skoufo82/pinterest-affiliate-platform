@@ -12,6 +12,7 @@ const navItems: NavItem[] = [
   { path: '/admin', label: 'Dashboard' },
   { path: '/admin/products', label: 'Products' },
   { path: '/admin/products/new', label: 'Add Product' },
+  { path: '/admin/sync-history', label: 'Sync History' },
   { path: '/admin/users', label: 'Users' },
 ];
 

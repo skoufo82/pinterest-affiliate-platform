@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { ImageUploader } from './ImageUploader';
 import type { Product, ProductInput } from '@/types';
+import { extractASIN } from '@/utils/asinExtractor';
 
 interface ProductFormProps {
   product?: Product;
@@ -39,6 +40,7 @@ export const ProductForm = ({
 
   const [tagsInput, setTagsInput] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [extractedAsin, setExtractedAsin] = useState<string | null>(null);
 
   // Pre-populate form when editing
   useEffect(() => {
@@ -55,8 +57,19 @@ export const ProductForm = ({
         featured: product.featured || false,
       });
       setTagsInput(product.tags?.join(', ') || '');
+      setExtractedAsin(product.asin || null);
     }
   }, [product]);
+
+  // Auto-extract ASIN when Amazon URL changes
+  useEffect(() => {
+    if (formData.amazonLink) {
+      const asin = extractASIN(formData.amazonLink);
+      setExtractedAsin(asin);
+    } else {
+      setExtractedAsin(null);
+    }
+  }, [formData.amazonLink]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -218,6 +231,109 @@ export const ProductForm = ({
         />
         {errors.amazonLink && <p className="mt-1 text-sm text-red-600">{errors.amazonLink}</p>}
       </div>
+
+      {/* ASIN Display (Auto-extracted, Read-only) */}
+      {formData.amazonLink && (
+        <div>
+          <label htmlFor="asin" className="block text-sm font-medium text-gray-700 mb-1">
+            ASIN (Auto-extracted)
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              id="asin"
+              value={extractedAsin || 'Not found'}
+              readOnly
+              className={`flex-1 px-3 py-2 border rounded-md bg-gray-50 ${
+                extractedAsin ? 'text-gray-900 border-gray-300' : 'text-red-600 border-red-300'
+              }`}
+            />
+            {extractedAsin ? (
+              <span className="text-green-600 text-sm font-medium">✓ Valid</span>
+            ) : (
+              <span className="text-red-600 text-sm font-medium">✗ Invalid URL</span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Amazon Standard Identification Number extracted from the URL
+          </p>
+        </div>
+      )}
+
+      {/* Price Sync Status (Only shown when editing existing product) */}
+      {product && (
+        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Price Sync Status</h3>
+          
+          {/* Sync Status Indicator */}
+          <div className="mb-3">
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Status
+            </label>
+            <div className="flex items-center gap-2">
+              {product.priceSyncStatus === 'success' && (
+                <>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✓ Success
+                  </span>
+                  <span className="text-xs text-gray-500">Price synced successfully</span>
+                </>
+              )}
+              {product.priceSyncStatus === 'failed' && (
+                <>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    ✗ Failed
+                  </span>
+                  <span className="text-xs text-gray-500">Price sync failed</span>
+                </>
+              )}
+              {product.priceSyncStatus === 'pending' && (
+                <>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    ⏳ Pending
+                  </span>
+                  <span className="text-xs text-gray-500">Waiting for sync</span>
+                </>
+              )}
+              {!product.priceSyncStatus && (
+                <>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    — Not synced
+                  </span>
+                  <span className="text-xs text-gray-500">No sync attempted yet</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Last Updated Timestamp */}
+          {product.priceLastUpdated && (
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Last Updated
+              </label>
+              <p className="text-sm text-gray-900">
+                {new Date(product.priceLastUpdated).toLocaleString('en-US', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                })}
+              </p>
+            </div>
+          )}
+
+          {/* Sync Error Message */}
+          {product.priceSyncError && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+              <label className="block text-xs font-medium text-red-800 mb-1">
+                Error Details
+              </label>
+              <p className="text-sm text-red-700 font-mono break-words">
+                {product.priceSyncError}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Price (Optional) */}
       <div>

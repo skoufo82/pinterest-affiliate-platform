@@ -101,6 +101,13 @@ function AdminDashboard() {
           <p className="text-sm sm:text-base text-blue-700">Create a new product listing</p>
         </Link>
         <Link
+          to="/admin/sync-history"
+          className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+        >
+          <h2 className="text-lg sm:text-xl font-semibold mb-2">Price Sync History</h2>
+          <p className="text-sm sm:text-base text-gray-600">View Amazon price sync logs</p>
+        </Link>
+        <Link
           to="/admin/users"
           className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
         >

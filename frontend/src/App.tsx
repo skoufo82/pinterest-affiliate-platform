@@ -24,6 +24,7 @@ const AdminProductList = lazy(() => import('@/pages/AdminProductList'));
 const AdminProductNew = lazy(() => import('@/pages/AdminProductNew'));
 const AdminProductEdit = lazy(() => import('@/pages/AdminProductEdit'));
 const AdminUserManagement = lazy(() => import('@/pages/AdminUserManagement'));
+const AdminSyncHistory = lazy(() => import('@/pages/AdminSyncHistory'));
 
 // 404 page
 import NotFound from '@/pages/NotFound';
@@ -155,6 +156,18 @@ function App() {
                   <AdminLayout>
                     <Suspense fallback={<PageLoader />}>
                       <AdminUserManagement />
+                    </Suspense>
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/sync-history"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminSyncHistory />
                     </Suspense>
                   </AdminLayout>
                 </ProtectedRoute>

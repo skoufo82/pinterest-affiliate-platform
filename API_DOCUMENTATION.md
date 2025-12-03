@@ -420,6 +420,89 @@ curl -X PUT "<uploadUrl>" \
 
 ---
 
+### Trigger Price Sync
+
+Manually trigger synchronization of product prices with Amazon PA-API.
+
+**Endpoint:** `POST /api/admin/sync-prices`
+
+**Authentication:** Required (Cognito JWT token)
+
+**Authorization:** Admin or Editor role required
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:** None required
+
+**Example Request:**
+
+```bash
+curl -X POST "https://api.example.com/prod/api/admin/sync-prices" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json"
+```
+
+**Example Response:**
+
+```json
+{
+  "message": "Price sync triggered successfully",
+  "executionId": "manual-1701234567890-abc123",
+  "status": "running",
+  "triggeredBy": "admin-username",
+  "triggeredAt": "2024-12-02T10:30:00.000Z",
+  "note": "Check CloudWatch logs for execution details"
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| message | string | Success message |
+| executionId | string | Unique identifier for this sync execution |
+| status | string | Current status (always "running" on trigger) |
+| triggeredBy | string | Username of the admin who triggered the sync |
+| triggeredAt | string | ISO timestamp when sync was triggered |
+| note | string | Instructions for monitoring the sync |
+
+**Error Responses:**
+
+- `401 Unauthorized` - Invalid or expired JWT token
+- `403 Forbidden` - User lacks admin/editor privileges
+- `500 Internal Server Error` - Failed to invoke sync Lambda
+
+**Notes:**
+- The sync runs asynchronously in the background
+- Use the `executionId` to track the sync in CloudWatch logs
+- Check `/aws/lambda/pinterest-affiliate-syncAmazonPrices` log group
+- Avoid triggering multiple syncs simultaneously
+- Respect Amazon PA-API rate limits (1 request/second)
+- Scheduled sync runs daily at 2 AM UTC automatically
+
+**Monitoring:**
+- View real-time metrics in the CloudWatch Dashboard: "PinterestAffiliate-PriceSync"
+- Search CloudWatch logs using the execution ID
+- Check CloudWatch alarms for high failure rates or authentication errors
+
+**Use Cases:**
+- After bulk product updates requiring immediate price refresh
+- Testing PA-API integration
+- Emergency price updates outside scheduled time
+- Verifying new PA-API credentials
+
+**Related Documentation:**
+- [Manual Price Sync Guide](MANUAL_PRICE_SYNC.md)
+- [Price Sync Infrastructure](PRICE_SYNC_INFRASTRUCTURE.md)
+- [Price Sync Monitoring](PRICE_SYNC_MONITORING.md)
+
+---
+
 ### User Management
 
 #### List Users

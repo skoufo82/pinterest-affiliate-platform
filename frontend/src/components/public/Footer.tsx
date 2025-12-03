@@ -22,7 +22,7 @@ export const Footer = () => {
 
           <nav className="flex items-center space-x-6" aria-label="Social media links">
             <a
-              href="https://pinterest.com"
+              href="https://pin.it/3JxNtGar8"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-pink-500 transition-colors"
@@ -38,7 +38,7 @@ export const Footer = () => {
               </svg>
             </a>
             <a
-              href="https://instagram.com"
+              href="https://instagram.com/jesskoufou"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-pink-500 transition-colors"
@@ -54,7 +54,7 @@ export const Footer = () => {
               </svg>
             </a>
             <a
-              href="https://facebook.com"
+              href="https://facebook.com/jessica.koufoudakis"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-pink-500 transition-colors"

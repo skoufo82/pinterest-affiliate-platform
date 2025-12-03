@@ -13,6 +13,10 @@ export interface Product {
   featured?: boolean;
   createdAt: string;
   updatedAt: string;
+  asin?: string; // Amazon Standard Identification Number
+  priceLastUpdated?: string; // ISO timestamp of last price sync
+  priceSyncStatus?: 'success' | 'failed' | 'pending';
+  priceSyncError?: string; // Last error message if sync failed
 }
 
 export interface Category {

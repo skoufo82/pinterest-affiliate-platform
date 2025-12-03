@@ -11,9 +11,15 @@
     "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-cloudwatch": "^3.943.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.943.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.470.0",
     "@aws-sdk/client-dynamodb": "^3.470.0",
+    "@aws-sdk/client-lambda": "^3.470.0",
     "@aws-sdk/client-s3": "^3.470.0",
     "@aws-sdk/client-ses": "^3.940.0",
+    "@aws-sdk/client-sns": "^3.943.0",
+    "@aws-sdk/client-ssm": "^3.470.0",
     "@aws-sdk/lib-dynamodb": "^3.470.0",
     "@aws-sdk/s3-request-presigner": "^3.470.0",
     "uuid": "^9.0.0"

@@ -203,6 +203,22 @@ export const adminApi = {
     });
     return response.data;
   },
+
+  // Price Sync Management
+  triggerPriceSync: async (): Promise<any> => {
+    const response = await apiClient.post('/admin/sync-prices');
+    return response.data;
+  },
+
+  getSyncHistory: async (params?: {
+    startDate?: string;
+    endDate?: string;
+    status?: 'success' | 'partial' | 'failed';
+    limit?: number;
+  }): Promise<any> => {
+    const response = await apiClient.get('/admin/sync-history', { params });
+    return response.data;
+  },
 };
 
 export default apiClient;
