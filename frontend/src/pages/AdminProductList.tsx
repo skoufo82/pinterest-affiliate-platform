@@ -52,7 +52,7 @@ function AdminProductList() {
     : products;
 
   const handleEdit = (id: string) => {
-    navigate(`/admin/products/${id}/edit`);
+    navigate(`/kbportal/products/${id}/edit`);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -82,7 +82,7 @@ function AdminProductList() {
           <p className="text-sm sm:text-base text-gray-600">Manage all products</p>
         </div>
         <button
-          onClick={() => navigate('/admin/products/new')}
+          onClick={() => navigate('/kbportal/products/new')}
           className="bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base whitespace-nowrap"
         >
           Add New Product

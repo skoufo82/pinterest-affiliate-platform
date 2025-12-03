@@ -102,7 +102,7 @@ function App() {
 
             {/* Admin routes - protected and lazy loaded */}
             <Route
-              path="/admin"
+              path="/kbportal"
               element={
                 <ProtectedRoute>
                   <AdminLayout>
@@ -114,7 +114,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/products"
+              path="/kbportal/products"
               element={
                 <ProtectedRoute>
                   <AdminLayout>
@@ -126,7 +126,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/products/new"
+              path="/kbportal/products/new"
               element={
                 <ProtectedRoute>
                   <AdminLayout>
@@ -138,7 +138,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/products/:id/edit"
+              path="/kbportal/products/:id/edit"
               element={
                 <ProtectedRoute>
                   <AdminLayout>
@@ -150,7 +150,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/users"
+              path="/kbportal/users"
               element={
                 <ProtectedRoute>
                   <AdminLayout>
@@ -162,7 +162,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/sync-history"
+              path="/kbportal/sync-history"
               element={
                 <ProtectedRoute>
                   <AdminLayout>

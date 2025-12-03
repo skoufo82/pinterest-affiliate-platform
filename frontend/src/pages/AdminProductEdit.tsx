@@ -56,12 +56,12 @@ function AdminProductEdit() {
       // Update local state immediately with the response
       setProduct(updatedProduct);
       // Force refresh of product list by navigating with state
-      navigate('/admin/products', { replace: true, state: { refresh: true } });
+      navigate('/kbportal/products', { replace: true, state: { refresh: true } });
     }
   };
 
   const handleCancel = () => {
-    navigate('/admin/products');
+    navigate('/kbportal/products');
   };
 
   if (fetchLoading) {
@@ -81,7 +81,7 @@ function AdminProductEdit() {
           <h2 className="text-lg sm:text-xl font-semibold text-red-800 mb-2">Error</h2>
           <p className="text-sm sm:text-base text-red-700">{fetchError || 'Product not found'}</p>
           <button
-            onClick={() => navigate('/admin/products')}
+            onClick={() => navigate('/kbportal/products')}
             className="mt-4 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm sm:text-base"
           >
             Back to Product List

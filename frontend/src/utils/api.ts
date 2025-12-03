@@ -58,7 +58,7 @@ export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
 apiClient.interceptors.request.use(
   async (config) => {
     // Add JWT token to admin requests
-    if (config.url?.includes('/admin') && getAuthToken) {
+    if (config.url?.includes('/kbportal') && getAuthToken) {
       try {
         const token = await getAuthToken();
         if (token) {

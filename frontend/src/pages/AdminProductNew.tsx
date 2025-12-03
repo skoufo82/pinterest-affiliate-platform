@@ -12,12 +12,12 @@ function AdminProductNew() {
     
     if (product) {
       // Redirect to dashboard on success
-      navigate('/admin', { replace: true });
+      navigate('/kbportal', { replace: true });
     }
   };
 
   const handleCancel = () => {
-    navigate('/admin/products');
+    navigate('/kbportal/products');
   };
 
   return (

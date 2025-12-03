@@ -14,7 +14,7 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as any)?.from?.pathname || '/admin';
+  const from = (location.state as any)?.from?.pathname || '/kbportal';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

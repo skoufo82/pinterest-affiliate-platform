@@ -87,28 +87,28 @@ function AdminDashboard() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <Link
-          to="/admin/products"
+          to="/kbportal/products"
           className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
         >
           <h2 className="text-lg sm:text-xl font-semibold mb-2">Manage Products</h2>
           <p className="text-sm sm:text-base text-gray-600">View, edit, and delete all products</p>
         </Link>
         <Link
-          to="/admin/products/new"
+          to="/kbportal/products/new"
           className="block p-4 sm:p-6 bg-blue-50 rounded-lg shadow hover:shadow-md transition-shadow border-2 border-blue-200"
         >
           <h2 className="text-lg sm:text-xl font-semibold mb-2 text-blue-900">Add New Product</h2>
           <p className="text-sm sm:text-base text-blue-700">Create a new product listing</p>
         </Link>
         <Link
-          to="/admin/sync-history"
+          to="/kbportal/sync-history"
           className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
         >
           <h2 className="text-lg sm:text-xl font-semibold mb-2">Price Sync History</h2>
           <p className="text-sm sm:text-base text-gray-600">View Amazon price sync logs</p>
         </Link>
         <Link
-          to="/admin/users"
+          to="/kbportal/users"
           className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
         >
           <h2 className="text-lg sm:text-xl font-semibold mb-2">Manage Users</h2>

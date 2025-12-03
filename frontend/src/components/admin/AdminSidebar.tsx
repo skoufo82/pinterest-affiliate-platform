@@ -9,11 +9,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { path: '/admin', label: 'Dashboard' },
-  { path: '/admin/products', label: 'Products' },
-  { path: '/admin/products/new', label: 'Add Product' },
-  { path: '/admin/sync-history', label: 'Sync History' },
-  { path: '/admin/users', label: 'Users' },
+  { path: '/kbportal', label: 'Dashboard' },
+  { path: '/kbportal/products', label: 'Products' },
+  { path: '/kbportal/products/new', label: 'Add Product' },
+  { path: '/kbportal/sync-history', label: 'Sync History' },
+  { path: '/kbportal/users', label: 'Users' },
 ];
 
 export const AdminSidebar = () => {
@@ -25,14 +25,14 @@ export const AdminSidebar = () => {
   // Filter nav items based on user role
   const filteredNavItems = navItems.filter(item => {
     // Only show Users menu to Admins
-    if (item.path === '/admin/users') {
+    if (item.path === '/kbportal/users') {
       return isAdmin;
     }
     return true;
   });
 
   const isActive = (path: string) => {
-    if (path === '/admin') {
+    if (path === '/kbportal') {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
