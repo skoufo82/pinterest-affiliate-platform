@@ -45,9 +45,10 @@ export function formatPriceUpdateTime(priceLastUpdated?: string): string {
 
 /**
  * Get the appropriate price display text
+ * Returns empty string if no price (will be populated by PA-API sync)
  */
 export function getPriceDisplayText(price?: string): string {
-  return price || 'Price not available';
+  return price || '';
 }
 
 /**

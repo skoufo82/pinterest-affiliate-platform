@@ -109,45 +109,43 @@ function ProductDetail() {
                   {selectedProduct.title}
                 </h1>
 
-                {/* Price Display */}
-                <div className="mb-4">
-                  <div
-                    className={`text-2xl md:text-3xl font-bold mb-1 ${
-                      selectedProduct.price ? 'text-pink-600' : 'text-gray-500'
-                    }`}
-                  >
-                    {getPriceDisplayText(selectedProduct.price)}
+                {/* Price Display - Only show if price exists */}
+                {selectedProduct.price && (
+                  <div className="mb-4">
+                    <div className="text-2xl md:text-3xl font-bold mb-1 text-pink-600">
+                      {getPriceDisplayText(selectedProduct.price)}
+                    </div>
+
+                    {/* Price Update Info */}
+                    {selectedProduct.priceLastUpdated && (
+                      <div className="text-sm text-gray-500">
+                        Price last updated {formatPriceUpdateTime(selectedProduct.priceLastUpdated)}
+                      </div>
+                    )}
+
+                    {/* Stale Price Warning */}
+                    {shouldShowStaleWarning(
+                      selectedProduct.price,
+                      selectedProduct.priceLastUpdated
+                    ) && (
+                      <div className="text-sm text-amber-600 mt-2 flex items-center bg-amber-50 px-3 py-2 rounded-md">
+                        <svg
+                          className="w-4 h-4 mr-2 flex-shrink-0"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Price may have changed on Amazon
+                      </div>
+                    )}
                   </div>
-
-                  {/* Price Update Info */}
-                  {selectedProduct.priceLastUpdated && (
-                    <div className="text-sm text-gray-500">
-                      Price last updated {formatPriceUpdateTime(selectedProduct.priceLastUpdated)}
-                    </div>
-                  )}
-
-                  {/* Stale Price Warning */}
-                  {shouldShowStaleWarning(
-                    selectedProduct.price,
-                    selectedProduct.priceLastUpdated
-                  ) && (
-                    <div className="text-sm text-amber-600 mt-2 flex items-center bg-amber-50 px-3 py-2 rounded-md">
-                      <svg
-                        className="w-4 h-4 mr-2 flex-shrink-0"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        aria-hidden="true"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Price may have changed on Amazon
-                    </div>
-                  )}
-                </div>
+                )}
 
                 {/* Full Description */}
                 <div className="text-gray-700 mb-6 leading-relaxed">
