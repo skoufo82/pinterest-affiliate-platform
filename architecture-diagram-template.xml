@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2024-12-04T00:00:00.000Z" agent="Draw.io" version="22.1.0" type="device">
+  <diagram name="Architecture" id="pinterest-affiliate-architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Pinterest Affiliate Platform - System Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="527" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Users Layer -->
+        <mxCell id="users-container" value="Users" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=16;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="200" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="public-user" value="Public Users" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="120" width="40" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin-user" value="Admin Users" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="160" y="120" width="40" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Frontend Layer -->
+        <mxCell id="frontend-container" value="Frontend Layer - AWS Amplify" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=16;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="80" width="300" height="280" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="react-app" value="React SPA&lt;br&gt;TypeScript + Vite&lt;br&gt;Tailwind CSS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="320" y="120" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin-portal" value="Admin Portal&lt;br&gt;/kbportal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="460" y="120" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cloudfront-fe" value="CloudFront CDN&lt;br&gt;Global Delivery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="320" y="200" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="custom-domain" value="koufobunch.com&lt;br&gt;Custom Domain + SSL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="320" y="270" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- API Layer -->
+        <mxCell id="api-container" value="API Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=16;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="660" y="80" width="200" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="api-gateway" value="API Gateway&lt;br&gt;REST API&lt;br&gt;CORS Enabled" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="120" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cognito-auth" value="Cognito Authorizer&lt;br&gt;JWT Validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="200" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Compute Layer -->
+        <mxCell id="compute-container" value="Compute Layer - AWS Lambda (Node.js 18)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=16;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="920" y="80" width="400" height="280" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="product-lambda" value="Product Functions&lt;br&gt;getProducts&lt;br&gt;createProduct&lt;br&gt;updateProduct" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="940" y="120" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-lambda" value="User Functions&lt;br&gt;createUser&lt;br&gt;listUsers&lt;br&gt;deleteUser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="120" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="price-sync-lambda" value="Price Sync&lt;br&gt;syncAmazonPrices&lt;br&gt;triggerPriceSync" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="940" y="210" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="utility-lambda" value="Utility Functions&lt;br&gt;uploadImage&lt;br&gt;getCategories" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="210" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Layer -->
+        <mxCell id="data-container" value="Data Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="920" y="420" width="400" height="280" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="dynamodb" value="DynamoDB&lt;br&gt;ProductsTable&lt;br&gt;GSI: category, published" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="940" y="460" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="s3-bucket" value="S3 Bucket&lt;br&gt;Product Images&lt;br&gt;Versioning Enabled" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="460" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cloudfront-cdn" value="CloudFront CDN&lt;br&gt;Image Delivery&lt;br&gt;24hr Cache" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="560" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cognito-pool" value="Cognito User Pool&lt;br&gt;Admin Authentication&lt;br&gt;JWT Tokens" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="940" y="560" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="parameter-store" value="Parameter Store&lt;br&gt;PA-API Credentials&lt;br&gt;Encrypted" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="940" y="660" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- External Services -->
+        <mxCell id="external-container" value="External Services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=16;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="80" width="240" height="280" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="amazon-paapi" value="Amazon PA-API&lt;br&gt;Price Data&lt;br&gt;Product Info" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="120" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="amazon-associates" value="Amazon Associates&lt;br&gt;Affiliate Tracking&lt;br&gt;Commission" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="200" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="google-adsense" value="Google AdSense&lt;br&gt;Display Ads&lt;br&gt;Monetization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="280" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Monitoring Layer -->
+        <mxCell id="monitoring-container" value="Monitoring &amp; Operations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=16;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="420" width="560" height="280" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cloudwatch" value="CloudWatch&lt;br&gt;Logs &amp; Metrics&lt;br&gt;1 Week Retention" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="320" y="460" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="dashboard" value="CloudWatch Dashboard&lt;br&gt;Price Sync Monitor&lt;br&gt;Real-time Metrics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="500" y="460" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="eventbridge" value="EventBridge&lt;br&gt;Daily 2AM UTC&lt;br&gt;Price Sync Trigger" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="680" y="460" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="alarms" value="CloudWatch Alarms&lt;br&gt;High Failure Rate&lt;br&gt;Auth Errors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="320" y="550" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="sns-topic" value="SNS Topic&lt;br&gt;Alert Notifications&lt;br&gt;Email Delivery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="500" y="550" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ses" value="AWS SES&lt;br&gt;Email Service&lt;br&gt;User Invites" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="680" y="550" width="160" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Deployment Layer -->
+        <mxCell id="deployment-container" value="Deployment &amp; CI/CD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=16;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="420" width="200" height="280" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="github" value="GitHub&lt;br&gt;Source Control&lt;br&gt;Version Control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="460" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="aws-cdk" value="AWS CDK&lt;br&gt;Infrastructure as Code&lt;br&gt;TypeScript" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="540" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="amplify-cicd" value="Amplify CI/CD&lt;br&gt;Auto Deploy&lt;br&gt;Build Pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="620" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Connections -->
+        <!-- Users to Frontend -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="public-user" target="react-app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="admin-user" target="admin-portal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Frontend to API -->
+        <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="react-app" target="api-gateway">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="admin-portal" target="cognito-auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- API to Lambda -->
+        <mxCell id="conn5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="api-gateway" target="product-lambda">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="cognito-auth" target="user-lambda">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Lambda to Data -->
+        <mxCell id="conn7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="product-lambda" target="dynamodb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="user-lambda" target="cognito-pool">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="utility-lambda" target="s3-bucket">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Lambda to External -->
+        <mxCell id="conn10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="price-sync-lambda" target="amazon-paapi">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- EventBridge to Lambda -->
+        <mxCell id="conn11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="eventbridge" target="price-sync-lambda">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Lambda to Monitoring -->
+        <mxCell id="conn12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="product-lambda" target="cloudwatch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Alarms to SNS -->
+        <mxCell id="conn13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="alarms" target="sns-topic">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- GitHub to Amplify -->
+        <mxCell id="conn14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="github" target="aws-cdk">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="aws-cdk" target="amplify-cicd">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend-container" value="Legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1;verticalAlign=top;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="760" width="400" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-text" value="Frontend: Green | API: Orange | Compute: Red | Data: Blue | External: Purple | Monitoring: Yellow | Deployment: Gray&lt;br&gt;&lt;br&gt;Solid Lines: Data Flow | Dashed Lines: Triggers/Events" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="790" width="380" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Metadata Box -->
+        <mxCell id="metadata-container" value="Production Environment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1;verticalAlign=top;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="420" width="240" height="280" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="metadata-text" value="Website: koufobunch.com&lt;br&gt;Admin: /kbportal&lt;br&gt;&lt;br&gt;AWS Resources:&lt;br&gt;• Amplify: d2zsamo7mttch3&lt;br&gt;• API: u0xet1m9p1&lt;br&gt;• DynamoDB: ProductsTable&lt;br&gt;• S3: pinterest-affiliate-images&lt;br&gt;• Cognito: us-east-1_dgrSfYa3L&lt;br&gt;&lt;br&gt;Monitoring:&lt;br&gt;• Dashboard: PinterestAffiliate-PriceSync&lt;br&gt;• Daily Sync: 2:00 AM UTC&lt;br&gt;• Alarms: Failure Rate, Auth Errors&lt;br&gt;&lt;br&gt;Last Updated: Dec 2024" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="450" width="220" height="240" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

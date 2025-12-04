@@ -2,12 +2,22 @@
 
 A modern, serverless web application for showcasing curated Amazon affiliate products in a Pinterest-inspired layout.
 
-## Architecture
+## System Architecture
+
+For a complete architecture overview with interactive diagrams, see:
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Comprehensive architecture documentation
+- **[architecture-diagram.md](./architecture-diagram.md)** - Interactive Mermaid diagram (auto-rendered by GitHub)
+- **[ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md)** - Guide for creating and maintaining diagrams
+
+### Quick Architecture Overview
 
 - **Frontend**: React 18 + Vite + TailwindCSS hosted on AWS Amplify
 - **Backend**: AWS Lambda functions with API Gateway
 - **Database**: DynamoDB for product data
-- **Storage**: S3 for product images
+- **Storage**: S3 for product images with CloudFront CDN
+- **Authentication**: AWS Cognito for admin users
+- **Monitoring**: CloudWatch with custom dashboards and alarms
+- **Price Sync**: Automated daily sync with Amazon PA-API via EventBridge
 - **Infrastructure**: AWS CDK for infrastructure as code
 
 ## Project Structure
