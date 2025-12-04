@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { lazy, Suspense, useEffect } from 'react';
 
@@ -10,6 +10,9 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 // Context
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { setAuthTokenGetter } from '@/utils/api';
+
+// Analytics
+import { initGA, trackPageView } from '@/utils/analytics';
 
 // Public pages (eagerly loaded for better initial performance)
 import Home from '@/pages/Home';
@@ -50,11 +53,29 @@ const AuthSetup = () => {
   return null;
 };
 
+// Component to track page views
+const AnalyticsTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Track page view on route change
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+
+  return null;
+};
+
 function App() {
+  // Initialize Google Analytics on app mount
+  useEffect(() => {
+    initGA();
+  }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>
         <AuthSetup />
+        <AnalyticsTracker />
         <Toaster
         position="top-right"
         toastOptions={{

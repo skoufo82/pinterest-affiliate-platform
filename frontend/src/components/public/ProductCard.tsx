@@ -6,6 +6,7 @@ import {
   formatPriceUpdateTime,
   shouldShowStaleWarning,
 } from '../../utils/priceDisplay';
+import { trackProductView, trackAffiliateClick } from '../../utils/analytics';
 
 interface ProductCardProps {
   product: Product;
@@ -13,10 +14,28 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, onClick }: ProductCardProps) => {
+  const handleCardClick = () => {
+    // Track product view
+    trackProductView(product.id, product.title, product.category, product.price);
+    if (onClick) {
+      onClick();
+    }
+  };
+
   const handleShopNowClick = (e: React.MouseEvent) => {
     // Prevent triggering navigation
     e.preventDefault();
     e.stopPropagation();
+    
+    // Track affiliate click
+    trackAffiliateClick(
+      product.id,
+      product.title,
+      product.amazonLink,
+      product.category,
+      product.price
+    );
+    
     // Open Amazon link in new tab
     window.open(product.amazonLink, '_blank', 'noopener,noreferrer');
   };
@@ -26,19 +45,20 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const wrapperProps = onClick
     ? {
         className: "bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 cursor-pointer block group",
-        onClick,
+        onClick: handleCardClick,
         role: "button" as const,
         tabIndex: 0,
         onKeyDown: (e: React.KeyboardEvent) => {
           if ((e.key === 'Enter' || e.key === ' ') && onClick) {
             e.preventDefault();
-            onClick();
+            handleCardClick();
           }
         },
         'aria-label': `View details for ${product.title}`,
       }
     : {
         to: `/products/${product.id}`,
+        onClick: handleCardClick,
         className: "bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 cursor-pointer block group",
         'aria-label': `View details for ${product.title}`,
       };
