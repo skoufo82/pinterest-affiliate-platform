@@ -12,7 +12,22 @@ Replace `<api-id>` and `<region>` with your API Gateway deployment values.
 
 ## Authentication
 
-Currently, the API does not require authentication for public endpoints. Admin endpoints may optionally be protected by a simple password mechanism or AWS Amplify Auth (implementation dependent).
+The API uses AWS Cognito for authentication with JWT tokens. Different endpoint groups have different authentication requirements:
+
+- **Public endpoints**: No authentication required
+- **Creator endpoints**: Require valid JWT token with `creator` role
+- **Admin endpoints**: Require valid JWT token with `admin` role
+
+**Authentication Header Format:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Roles:**
+- `admin`: Full platform access, can manage all creators and products
+- `creator`: Can manage own profile and products only
+- `viewer`: Read-only access (default for unauthenticated users)
 
 ## Response Format
 
@@ -44,7 +59,12 @@ All API responses follow a consistent JSON format:
 - `200 OK` - Request succeeded
 - `201 Created` - Resource created successfully
 - `400 Bad Request` - Invalid request parameters
+- `401 Unauthorized` - Authentication required or invalid token
+- `403 Forbidden` - Insufficient permissions
 - `404 Not Found` - Resource not found
+- `409 Conflict` - Resource conflict (e.g., duplicate slug)
+- `413 Payload Too Large` - Request body too large
+- `429 Too Many Requests` - Rate limit exceeded
 - `500 Internal Server Error` - Server error
 
 ---
@@ -186,6 +206,595 @@ curl -X GET "https://api.example.com/prod/api/categories"
 **Notes:**
 - Categories are sorted by the `order` field
 - The `slug` field is used for filtering products by category
+
+---
+
+## Creator Endpoints
+
+### Get Creator by Slug
+
+Retrieve a creator's public profile and theme settings.
+
+**Endpoint:** `GET /api/creators/:slug`
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| slug | string | Yes | Creator's unique URL slug |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/creators/sarah-home-decor"
+```
+
+**Example Response:**
+
+```json
+{
+  "creator": {
+    "id": "creator-123",
+    "slug": "sarah-home-decor",
+    "displayName": "Sarah's Home Finds",
+    "bio": "Curating beautiful and functional home decor pieces",
+    "profileImage": "https://s3.amazonaws.com/bucket/profiles/sarah.jpg",
+    "coverImage": "https://s3.amazonaws.com/bucket/covers/sarah-cover.jpg",
+    "socialLinks": {
+      "instagram": "https://instagram.com/sarahhomefinds",
+      "pinterest": "https://pinterest.com/sarahhomefinds"
+    },
+    "theme": {
+      "primaryColor": "#2C5F2D",
+      "accentColor": "#97BC62",
+      "font": "Inter"
+    },
+    "status": "active",
+    "createdAt": "2025-01-15T10:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found` - Creator does not exist or is disabled
+
+---
+
+### Get Creator's Products
+
+Retrieve all approved products for a specific creator.
+
+**Endpoint:** `GET /api/creators/:slug/products`
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| slug | string | Yes | Creator's unique URL slug |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| category | string | No | Filter by category |
+| search | string | No | Search in title and description |
+| sort | string | No | Sort order: `newest`, `price-asc`, `price-desc` |
+| limit | number | No | Number of products (default: 20, max: 100) |
+| offset | number | No | Pagination offset (default: 0) |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/creators/sarah-home-decor/products?category=home-kitchen&sort=newest&limit=10"
+```
+
+**Example Response:**
+
+```json
+{
+  "products": [
+    {
+      "id": "product-456",
+      "creatorId": "creator-123",
+      "title": "Ceramic Vase Set",
+      "description": "Beautiful handcrafted ceramic vases",
+      "category": "home-kitchen",
+      "imageUrl": "https://s3.amazonaws.com/bucket/products/vase.jpg",
+      "amazonLink": "https://amazon.com/dp/B08XYZ?tag=affiliate-20",
+      "price": 49.99,
+      "featured": true,
+      "status": "approved",
+      "createdAt": "2025-01-15T10:30:00Z",
+      "updatedAt": "2025-01-15T10:30:00Z"
+    }
+  ],
+  "total": 45,
+  "hasMore": true
+}
+```
+
+**Notes:**
+- Only returns products with `status: "approved"`
+- Featured products appear first when no sort is specified
+
+---
+
+### Get Creator's Featured Products
+
+Retrieve featured products for a creator.
+
+**Endpoint:** `GET /api/creators/:slug/featured`
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| slug | string | Yes | Creator's unique URL slug |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/creators/sarah-home-decor/featured"
+```
+
+**Example Response:**
+
+```json
+{
+  "products": [
+    {
+      "id": "product-456",
+      "title": "Ceramic Vase Set",
+      "featured": true,
+      "imageUrl": "https://s3.amazonaws.com/bucket/products/vase.jpg",
+      "price": 49.99
+    }
+  ]
+}
+```
+
+---
+
+### Get Creator Profile (Authenticated)
+
+Retrieve the authenticated creator's own profile.
+
+**Endpoint:** `GET /api/creator/profile`
+
+**Authentication:** Required (Creator role)
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/creator/profile" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "creator": {
+    "id": "creator-123",
+    "userId": "cognito-user-id",
+    "slug": "sarah-home-decor",
+    "displayName": "Sarah's Home Finds",
+    "bio": "Curating beautiful and functional home decor pieces",
+    "profileImage": "https://s3.amazonaws.com/bucket/profiles/sarah.jpg",
+    "coverImage": "https://s3.amazonaws.com/bucket/covers/sarah-cover.jpg",
+    "socialLinks": {
+      "instagram": "https://instagram.com/sarahhomefinds",
+      "pinterest": "https://pinterest.com/sarahhomefinds",
+      "tiktok": "https://tiktok.com/@sarahhomefinds"
+    },
+    "theme": {
+      "primaryColor": "#2C5F2D",
+      "accentColor": "#97BC62",
+      "font": "Inter"
+    },
+    "status": "active",
+    "createdAt": "2025-01-15T10:00:00Z",
+    "updatedAt": "2025-01-15T10:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+- `401 Unauthorized` - Invalid or missing JWT token
+- `403 Forbidden` - User is not a creator
+
+---
+
+### Update Creator Profile
+
+Update the authenticated creator's profile.
+
+**Endpoint:** `PUT /api/creator/profile`
+
+**Authentication:** Required (Creator role)
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| displayName | string | No | Public display name (max 100 chars) |
+| bio | string | No | Creator bio (max 500 chars) |
+| profileImage | string | No | S3 URL of profile image |
+| coverImage | string | No | S3 URL of cover image |
+| socialLinks | object | No | Social media links |
+| socialLinks.instagram | string | No | Instagram URL |
+| socialLinks.pinterest | string | No | Pinterest URL |
+| socialLinks.tiktok | string | No | TikTok URL |
+| theme | object | No | Theme customization |
+| theme.primaryColor | string | No | Hex color code |
+| theme.accentColor | string | No | Hex color code |
+| theme.font | string | No | Font family name |
+
+**Example Request:**
+
+```bash
+curl -X PUT "https://api.example.com/prod/api/creator/profile" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "displayName": "Sarah'\''s Home Finds",
+    "bio": "Curating beautiful home decor",
+    "theme": {
+      "primaryColor": "#2C5F2D",
+      "accentColor": "#97BC62"
+    }
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "creator": {
+    "id": "creator-123",
+    "displayName": "Sarah's Home Finds",
+    "bio": "Curating beautiful home decor",
+    "theme": {
+      "primaryColor": "#2C5F2D",
+      "accentColor": "#97BC62",
+      "font": "Inter"
+    },
+    "updatedAt": "2025-01-15T11:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request` - Invalid input data
+- `401 Unauthorized` - Invalid or missing JWT token
+
+**Validation Rules:**
+- `displayName`: 1-100 characters
+- `bio`: 0-500 characters
+- Color codes must be valid hex format (#RRGGBB)
+- Social links must be valid HTTPS URLs
+
+---
+
+### Get Creator's Own Products
+
+Retrieve all products owned by the authenticated creator (all statuses).
+
+**Endpoint:** `GET /api/creator/products`
+
+**Authentication:** Required (Creator role)
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| status | string | No | Filter by status: `pending`, `approved`, `rejected` |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/creator/products?status=pending" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "products": [
+    {
+      "id": "product-789",
+      "creatorId": "creator-123",
+      "title": "Modern Table Lamp",
+      "description": "Minimalist design table lamp",
+      "category": "home-kitchen",
+      "imageUrl": "https://s3.amazonaws.com/bucket/products/lamp.jpg",
+      "amazonLink": "https://amazon.com/dp/B08ABC?tag=affiliate-20",
+      "price": 79.99,
+      "featured": false,
+      "status": "pending",
+      "createdAt": "2025-01-16T09:00:00Z",
+      "updatedAt": "2025-01-16T09:00:00Z"
+    }
+  ]
+}
+```
+
+**Notes:**
+- Returns products in all statuses (pending, approved, rejected)
+- Only returns products owned by the authenticated creator
+
+---
+
+### Create Product (Creator)
+
+Create a new product as a creator.
+
+**Endpoint:** `POST /api/creator/products`
+
+**Authentication:** Required (Creator role)
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| title | string | Yes | Product title (max 200 characters) |
+| description | string | Yes | Product description (max 2000 characters) |
+| category | string | Yes | Category slug |
+| imageUrl | string | Yes | S3 URL of product image |
+| amazonLink | string | Yes | Amazon affiliate link |
+| price | number | No | Price in dollars |
+| featured | boolean | No | Mark as featured (default: false) |
+
+**Example Request:**
+
+```bash
+curl -X POST "https://api.example.com/prod/api/creator/products" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Bamboo Cutting Board",
+    "description": "Eco-friendly bamboo cutting board",
+    "category": "home-kitchen",
+    "imageUrl": "https://s3.amazonaws.com/bucket/products/board.jpg",
+    "amazonLink": "https://amazon.com/dp/B08DEF?tag=affiliate-20",
+    "price": 29.99,
+    "featured": true
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "product": {
+    "id": "product-890",
+    "creatorId": "creator-123",
+    "title": "Bamboo Cutting Board",
+    "description": "Eco-friendly bamboo cutting board",
+    "category": "home-kitchen",
+    "imageUrl": "https://s3.amazonaws.com/bucket/products/board.jpg",
+    "amazonLink": "https://amazon.com/dp/B08DEF?tag=affiliate-20",
+    "price": 29.99,
+    "featured": true,
+    "status": "pending",
+    "createdAt": "2025-01-16T10:00:00Z",
+    "updatedAt": "2025-01-16T10:00:00Z"
+  }
+}
+```
+
+**Notes:**
+- New products are automatically set to `status: "pending"` for admin review
+- `creatorId` is automatically assigned from the JWT token
+- Product will not appear on public landing page until approved
+
+---
+
+### Update Product (Creator)
+
+Update an existing product owned by the authenticated creator.
+
+**Endpoint:** `PUT /api/creator/products/:id`
+
+**Authentication:** Required (Creator role)
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string (UUID) | Yes | Product ID |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+Same fields as Create Product, all optional. Only include fields to update.
+
+**Example Request:**
+
+```bash
+curl -X PUT "https://api.example.com/prod/api/creator/products/product-890" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "price": 24.99,
+    "featured": false
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "product": {
+    "id": "product-890",
+    "price": 24.99,
+    "featured": false,
+    "updatedAt": "2025-01-16T11:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+- `403 Forbidden` - Product is not owned by the authenticated creator
+- `404 Not Found` - Product does not exist
+
+**Notes:**
+- Ownership is verified before allowing updates
+- Cannot modify `creatorId` or `status` fields
+
+---
+
+### Delete Product (Creator)
+
+Delete a product owned by the authenticated creator.
+
+**Endpoint:** `DELETE /api/creator/products/:id`
+
+**Authentication:** Required (Creator role)
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string (UUID) | Yes | Product ID |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Example Request:**
+
+```bash
+curl -X DELETE "https://api.example.com/prod/api/creator/products/product-890" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "success": true,
+  "message": "Product deleted successfully"
+}
+```
+
+**Error Responses:**
+
+- `403 Forbidden` - Product is not owned by the authenticated creator
+- `404 Not Found` - Product does not exist
+
+---
+
+### Get Creator Analytics
+
+Retrieve analytics for the authenticated creator's storefront.
+
+**Endpoint:** `GET /api/creator/analytics`
+
+**Authentication:** Required (Creator role)
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| startDate | string | No | Start date (ISO 8601, default: 30 days ago) |
+| endDate | string | No | End date (ISO 8601, default: today) |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/creator/analytics?startDate=2025-01-01&endDate=2025-01-31" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "analytics": {
+    "summary": {
+      "pageViews": 1250,
+      "productViews": 3420,
+      "affiliateClicks": 156,
+      "clickThroughRate": 4.56
+    },
+    "topProducts": [
+      {
+        "productId": "product-456",
+        "title": "Ceramic Vase Set",
+        "views": 450,
+        "clicks": 45,
+        "clickThroughRate": 10.0
+      },
+      {
+        "productId": "product-789",
+        "title": "Modern Table Lamp",
+        "views": 380,
+        "clicks": 32,
+        "clickThroughRate": 8.42
+      }
+    ],
+    "dailyMetrics": [
+      {
+        "date": "2025-01-15",
+        "pageViews": 45,
+        "productViews": 120,
+        "affiliateClicks": 8
+      }
+    ]
+  }
+}
+```
+
+**Notes:**
+- Analytics data is aggregated daily
+- Click-through rate is calculated as (clicks / views) * 100
+- Top products are sorted by total clicks
 
 ---
 
@@ -503,6 +1112,306 @@ curl -X POST "https://api.example.com/prod/api/admin/sync-prices" \
 
 ---
 
+### Creator Management (Admin)
+
+#### List All Creators
+
+Retrieve all creators on the platform.
+
+**Endpoint:** `GET /api/admin/creators`
+
+**Authentication:** Required (Admin role)
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/admin/creators" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "creators": [
+    {
+      "id": "creator-123",
+      "slug": "sarah-home-decor",
+      "displayName": "Sarah's Home Finds",
+      "email": "sarah@example.com",
+      "status": "active",
+      "productCount": 45,
+      "createdAt": "2025-01-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+#### Update Creator Status
+
+Enable or disable a creator account.
+
+**Endpoint:** `PUT /api/admin/creators/:id/status`
+
+**Authentication:** Required (Admin role)
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string (UUID) | Yes | Creator ID |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| status | string | Yes | `active` or `disabled` |
+
+**Example Request:**
+
+```bash
+curl -X PUT "https://api.example.com/prod/api/admin/creators/creator-123/status" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "disabled"
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "creator": {
+    "id": "creator-123",
+    "status": "disabled",
+    "updatedAt": "2025-01-16T12:00:00Z"
+  }
+}
+```
+
+**Notes:**
+- Disabling a creator hides their landing page and prevents login
+- Creator receives email notification of status change
+
+---
+
+### Product Moderation (Admin)
+
+#### Get Pending Products
+
+Retrieve all products awaiting approval.
+
+**Endpoint:** `GET /api/admin/products/pending`
+
+**Authentication:** Required (Admin role)
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/admin/products/pending" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "products": [
+    {
+      "id": "product-789",
+      "creatorId": "creator-123",
+      "creatorName": "Sarah's Home Finds",
+      "title": "Modern Table Lamp",
+      "description": "Minimalist design table lamp",
+      "category": "home-kitchen",
+      "imageUrl": "https://s3.amazonaws.com/bucket/products/lamp.jpg",
+      "amazonLink": "https://amazon.com/dp/B08ABC?tag=affiliate-20",
+      "price": 79.99,
+      "status": "pending",
+      "createdAt": "2025-01-16T09:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+#### Approve Product
+
+Approve a pending product for public display.
+
+**Endpoint:** `PUT /api/admin/products/:id/approve`
+
+**Authentication:** Required (Admin role)
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string (UUID) | Yes | Product ID |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Example Request:**
+
+```bash
+curl -X PUT "https://api.example.com/prod/api/admin/products/product-789/approve" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "product": {
+    "id": "product-789",
+    "status": "approved",
+    "updatedAt": "2025-01-16T12:30:00Z"
+  }
+}
+```
+
+**Notes:**
+- Product becomes visible on creator's public landing page
+- Creator receives email notification of approval
+
+---
+
+#### Reject Product
+
+Reject a pending product with a reason.
+
+**Endpoint:** `PUT /api/admin/products/:id/reject`
+
+**Authentication:** Required (Admin role)
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string (UUID) | Yes | Product ID |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| reason | string | Yes | Rejection reason (max 500 chars) |
+
+**Example Request:**
+
+```bash
+curl -X PUT "https://api.example.com/prod/api/admin/products/product-789/reject" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "reason": "Product image quality is too low. Please upload a higher resolution image."
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "product": {
+    "id": "product-789",
+    "status": "rejected",
+    "rejectionReason": "Product image quality is too low. Please upload a higher resolution image.",
+    "updatedAt": "2025-01-16T12:35:00Z"
+  }
+}
+```
+
+**Notes:**
+- Product remains hidden from public landing page
+- Creator receives email notification with rejection reason
+- Creator can edit and resubmit the product
+
+---
+
+#### Get All Products (Admin)
+
+Retrieve all products across all creators with filtering.
+
+**Endpoint:** `GET /api/admin/products`
+
+**Authentication:** Required (Admin role)
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| creatorId | string | No | Filter by creator ID |
+| status | string | No | Filter by status: `pending`, `approved`, `rejected` |
+| limit | number | No | Number of products (default: 20, max: 100) |
+| offset | number | No | Pagination offset (default: 0) |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.example.com/prod/api/admin/products?status=approved&limit=50" \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+**Example Response:**
+
+```json
+{
+  "products": [
+    {
+      "id": "product-456",
+      "creatorId": "creator-123",
+      "creatorName": "Sarah's Home Finds",
+      "title": "Ceramic Vase Set",
+      "status": "approved",
+      "createdAt": "2025-01-15T10:30:00Z"
+    }
+  ],
+  "total": 150,
+  "hasMore": true
+}
+```
+
+---
+
 ### User Management
 
 #### List Users
@@ -714,6 +1623,12 @@ curl -X DELETE "https://api.example.com/prod/api/admin/users/newadmin" \
 | `INVALID_FILE_TYPE` | Unsupported file type for upload |
 | `MISSING_REQUIRED_FIELD` | Required field is missing |
 | `INVALID_FORMAT` | Field format is invalid |
+| `UNAUTHORIZED` | Authentication required or invalid token |
+| `FORBIDDEN` | Insufficient permissions for this operation |
+| `DUPLICATE_SLUG` | Creator slug already exists |
+| `OWNERSHIP_ERROR` | Product is not owned by the requesting creator |
+| `INVALID_STATUS` | Invalid product or creator status |
+| `RATE_LIMIT_EXCEEDED` | Too many requests, please retry later |
 
 ---
 
@@ -721,8 +1636,9 @@ curl -X DELETE "https://api.example.com/prod/api/admin/users/newadmin" \
 
 The API implements rate limiting to prevent abuse:
 
-- **Public endpoints**: 1000 requests per minute per IP
-- **Admin endpoints**: 100 requests per minute per IP
+- **Public endpoints**: 100 requests per minute per IP
+- **Creator endpoints**: 1000 requests per minute per authenticated user
+- **Admin endpoints**: 10000 requests per minute per authenticated user
 
 When rate limit is exceeded, the API returns:
 

@@ -8,7 +8,8 @@
     "lint": "eslint . --ext ts --report-unused-disable-directives --max-warnings 0",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "migrate": "tsx scripts/migrateToMultiCreator.ts"
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.943.0",
@@ -22,6 +23,7 @@
     "@aws-sdk/client-ssm": "^3.470.0",
     "@aws-sdk/lib-dynamodb": "^3.470.0",
     "@aws-sdk/s3-request-presigner": "^3.470.0",
+    "aws-jwt-verify": "^5.1.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

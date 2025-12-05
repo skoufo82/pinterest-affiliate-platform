@@ -1,8 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { successResponse, errorResponse } from '../../shared/responses';
 import { createLogger } from '../../shared/logger';
+import { verifyProductOwnershipOrAdmin } from '../../shared/ownershipValidation';
 
 const client = new DynamoDBClient({ region: process.env.REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -30,25 +31,48 @@ export async function handler(
       );
     }
 
-    // Check if product exists
-    const getCommand = new GetCommand({
-      TableName: TABLE_NAME,
-      Key: {
-        id: productId,
-      },
-    });
-
-    const getResult = await docClient.send(getCommand);
-
-    if (!getResult.Item) {
-      logger.warn('Product not found', { productId });
-      logger.logResponse(404, Date.now() - startTime);
-      return errorResponse(
-        404,
-        'NOT_FOUND',
-        'Product not found',
-        event.requestContext.requestId
-      );
+    // Verify ownership or admin access
+    let isAdminAction = false;
+    try {
+      const { isAdmin } = await verifyProductOwnershipOrAdmin(event, productId);
+      isAdminAction = isAdmin;
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      
+      if (errorMessage === 'PRODUCT_NOT_FOUND') {
+        logger.warn('Product not found', { productId });
+        logger.logResponse(404, Date.now() - startTime);
+        return errorResponse(
+          404,
+          'NOT_FOUND',
+          'Product not found',
+          event.requestContext.requestId
+        );
+      }
+      
+      if (errorMessage === 'OWNERSHIP_VERIFICATION_FAILED') {
+        logger.warn('Ownership verification failed', { productId });
+        logger.logResponse(403, Date.now() - startTime);
+        return errorResponse(
+          403,
+          'FORBIDDEN',
+          'You do not have permission to delete this product',
+          event.requestContext.requestId
+        );
+      }
+      
+      if (errorMessage === 'CREATOR_ID_NOT_FOUND') {
+        logger.warn('Creator ID not found in token');
+        logger.logResponse(401, Date.now() - startTime);
+        return errorResponse(
+          401,
+          'UNAUTHORIZED',
+          'Creator authentication required',
+          event.requestContext.requestId
+        );
+      }
+      
+      throw error;
     }
 
     // Delete from DynamoDB
@@ -62,7 +86,17 @@ export async function handler(
     await docClient.send(deleteCommand);
 
     const duration = Date.now() - startTime;
-    logger.info('Product deleted successfully', { productId });
+    
+    // Log admin action for audit trail
+    if (isAdminAction) {
+      logger.info('AUDIT: Admin deleted product', { 
+        productId,
+        adminUserId: event.requestContext.authorizer?.claims?.['sub'],
+        action: 'DELETE_PRODUCT',
+      });
+    }
+    
+    logger.info('Product deleted successfully', { productId, isAdminAction });
     logger.logResponse(200, duration);
 
     return successResponse(200, {

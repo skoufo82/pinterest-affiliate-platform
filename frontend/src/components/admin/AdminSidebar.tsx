@@ -12,6 +12,9 @@ const navItems: NavItem[] = [
   { path: '/kbportal', label: 'Dashboard' },
   { path: '/kbportal/products', label: 'Products' },
   { path: '/kbportal/products/new', label: 'Add Product' },
+  { path: '/kbportal/moderation', label: 'Moderation' },
+  { path: '/kbportal/creators', label: 'Creators' },
+  { path: '/kbportal/analytics', label: 'Analytics' },
   { path: '/kbportal/sync-history', label: 'Sync History' },
   { path: '/kbportal/users', label: 'Users' },
 ];

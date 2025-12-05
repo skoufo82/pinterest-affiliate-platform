@@ -6,6 +6,7 @@ import { successResponse, errorResponse } from '../../shared/responses';
 import { validateProduct } from '../../shared/validation';
 import { Product } from '../../shared/types';
 import { createLogger } from '../../shared/logger';
+import { extractUserContext, requireCreator, getCreatorId } from '../../shared/authContext';
 
 const client = new DynamoDBClient({ region: process.env.REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -33,6 +34,17 @@ export async function handler(
 
     const data = JSON.parse(event.body);
 
+    // Extract user context and verify creator role
+    const userContext = extractUserContext(event);
+    requireCreator(userContext);
+    const creatorId = getCreatorId(userContext);
+
+    logger.info('User context extracted', {
+      userId: userContext.userId,
+      role: userContext.role,
+      creatorId,
+    });
+
     // Validate input data
     const validation = validateProduct(data);
     if (!validation.valid) {
@@ -51,6 +63,7 @@ export async function handler(
     const now = new Date().toISOString();
     const product: Product = {
       id: uuidv4(),
+      creatorId, // Auto-assign creatorId from token
       title: data.title,
       description: data.description,
       category: data.category,
@@ -60,6 +73,7 @@ export async function handler(
       tags: data.tags,
       published: data.published ? 'true' : 'false', // Convert boolean to string for GSI
       featured: data.featured ? 'true' : 'false', // Convert boolean to string
+      status: 'pending', // New products start as pending
       createdAt: now,
       updatedAt: now,
     };

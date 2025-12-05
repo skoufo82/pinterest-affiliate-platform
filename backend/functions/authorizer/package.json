@@ -1,0 +1,9 @@
+{
+  "name": "authorizer",
+  "version": "1.0.0",
+  "description": "Custom Lambda authorizer for API Gateway",
+  "main": "index.js",
+  "dependencies": {
+    "aws-jwt-verify": "^4.0.0"
+  }
+}

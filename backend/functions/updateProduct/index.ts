@@ -1,8 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, UpdateCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { successResponse, errorResponse } from '../../shared/responses';
 import { createLogger } from '../../shared/logger';
+import { extractUserContext, requireOwnershipOrAdmin } from '../../shared/authContext';
 
 const client = new DynamoDBClient({ region: process.env.REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -41,16 +42,17 @@ export async function handler(
       );
     }
 
-    // Check if product exists
+    // Extract user context and verify authorization
+    const userContext = extractUserContext(event);
+    const isAdminAction = userContext.role === 'admin';
+
+    // Get the product to verify ownership
     const getCommand = new GetCommand({
       TableName: TABLE_NAME,
-      Key: {
-        id: productId,
-      },
+      Key: { id: productId },
     });
 
     const getResult = await docClient.send(getCommand);
-
     if (!getResult.Item) {
       logger.warn('Product not found', { productId });
       logger.logResponse(404, Date.now() - startTime);
@@ -58,6 +60,31 @@ export async function handler(
         404,
         'NOT_FOUND',
         'Product not found',
+        event.requestContext.requestId
+      );
+    }
+
+    const existingProduct = getResult.Item;
+
+    // Verify ownership or admin access
+    try {
+      requireOwnershipOrAdmin(userContext, existingProduct.creatorId);
+      logger.info('Ownership verified', {
+        userId: userContext.userId,
+        role: userContext.role,
+        productCreatorId: existingProduct.creatorId,
+      });
+    } catch (error) {
+      logger.warn('Ownership verification failed', {
+        userId: userContext.userId,
+        role: userContext.role,
+        productCreatorId: existingProduct.creatorId,
+      });
+      logger.logResponse(403, Date.now() - startTime);
+      return errorResponse(
+        403,
+        'FORBIDDEN',
+        'You do not have permission to modify this product',
         event.requestContext.requestId
       );
     }
@@ -138,9 +165,21 @@ export async function handler(
     }
 
     const duration = Date.now() - startTime;
+    
+    // Log admin action for audit trail
+    if (isAdminAction) {
+      logger.info('AUDIT: Admin updated product', { 
+        productId,
+        adminUserId: event.requestContext.authorizer?.claims?.['sub'],
+        action: 'UPDATE_PRODUCT',
+        updatedFields: Object.keys(data),
+      });
+    }
+    
     logger.info('Product updated successfully', {
       productId,
       updatedFields: Object.keys(data),
+      isAdminAction,
     });
     logger.logResponse(200, duration);
 

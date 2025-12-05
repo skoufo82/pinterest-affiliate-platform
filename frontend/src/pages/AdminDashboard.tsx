@@ -101,6 +101,27 @@ function AdminDashboard() {
           <p className="text-sm sm:text-base text-blue-700">Create a new product listing</p>
         </Link>
         <Link
+          to="/kbportal/moderation"
+          className="block p-4 sm:p-6 bg-yellow-50 rounded-lg shadow hover:shadow-md transition-shadow border-2 border-yellow-200"
+        >
+          <h2 className="text-lg sm:text-xl font-semibold mb-2 text-yellow-900">Product Moderation</h2>
+          <p className="text-sm sm:text-base text-yellow-700">Review and approve pending products</p>
+        </Link>
+        <Link
+          to="/kbportal/creators"
+          className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+        >
+          <h2 className="text-lg sm:text-xl font-semibold mb-2">Manage Creators</h2>
+          <p className="text-sm sm:text-base text-gray-600">View and manage creator accounts</p>
+        </Link>
+        <Link
+          to="/kbportal/analytics"
+          className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+        >
+          <h2 className="text-lg sm:text-xl font-semibold mb-2">Platform Analytics</h2>
+          <p className="text-sm sm:text-base text-gray-600">View platform-wide metrics</p>
+        </Link>
+        <Link
           to="/kbportal/sync-history"
           className="block p-4 sm:p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
         >

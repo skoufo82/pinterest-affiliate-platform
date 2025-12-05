@@ -6,3 +6,4 @@ export { ProductGrid } from './ProductGrid';
 export { CategoryCard } from './CategoryCard';
 export { ShareButton } from './ShareButton';
 export { ProductModal } from './ProductModal';
+export { CreatorCard } from './CreatorCard';

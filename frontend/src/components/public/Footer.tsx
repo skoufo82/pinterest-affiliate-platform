@@ -1,7 +1,51 @@
+import { Link } from 'react-router-dom';
+
 export const Footer = () => {
   return (
     <footer className="bg-gray-900 text-gray-300 mt-auto" role="contentinfo">
       <div className="container mx-auto px-4 py-8">
+        {/* Platform Info Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          {/* About Platform */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-4">About KoufoBunch</h3>
+            <p className="text-sm text-gray-400 leading-relaxed">
+              A multi-creator marketplace where content creators can build their own branded storefronts 
+              and share their favorite products with their audience.
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-4">Quick Links</h3>
+            <nav className="flex flex-col space-y-2" aria-label="Footer navigation">
+              <Link to="/" className="text-sm text-gray-400 hover:text-pink-500 transition-colors">
+                Home
+              </Link>
+              <Link to="/creators" className="text-sm text-gray-400 hover:text-pink-500 transition-colors">
+                Browse Creators
+              </Link>
+              <Link to="/signup" className="text-sm text-gray-400 hover:text-pink-500 transition-colors">
+                Become a Creator
+              </Link>
+              <Link to="/categories" className="text-sm text-gray-400 hover:text-pink-500 transition-colors">
+                Categories
+              </Link>
+            </nav>
+          </div>
+
+          {/* For Creators */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-4">For Creators</h3>
+            <ul className="flex flex-col space-y-2 text-sm text-gray-400">
+              <li>✓ Custom branded storefront</li>
+              <li>✓ Product management tools</li>
+              <li>✓ Analytics dashboard</li>
+              <li>✓ Theme customization</li>
+            </ul>
+          </div>
+        </div>
+
         {/* Affiliate Disclosure */}
         <section className="mb-6 p-4 bg-gray-800 rounded-lg" aria-label="Affiliate disclosure">
           <p className="text-sm leading-relaxed">
@@ -12,7 +56,7 @@ export const Footer = () => {
           </p>
         </section>
 
-        {/* Social Media Links */}
+        {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between border-t border-gray-700 pt-6">
           <div className="mb-4 md:mb-0">
             <p className="text-sm">

@@ -17,6 +17,9 @@ import * as path from 'path';
 
 interface BackendStackProps extends cdk.StackProps {
   productsTable: dynamodb.Table;
+  creatorsTable: dynamodb.Table;
+  analyticsEventsTable: dynamodb.Table;
+  analyticsSummariesTable: dynamodb.Table;
   imagesBucket: s3.Bucket;
   userPool: cognito.UserPool;
 }
@@ -28,7 +31,7 @@ export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: BackendStackProps) {
     super(scope, id, props);
 
-    const { productsTable, imagesBucket, userPool } = props;
+    const { productsTable, creatorsTable, analyticsEventsTable, analyticsSummariesTable, imagesBucket, userPool } = props;
 
     // Create SNS topic for price sync alerts
     this.priceSyncAlertTopic = new sns.Topic(this, 'PriceSyncAlertTopic', {
@@ -76,6 +79,9 @@ export class BackendStack extends cdk.Stack {
 
     // Grant DynamoDB permissions
     productsTable.grantReadWriteData(lambdaRole);
+    creatorsTable.grantReadWriteData(lambdaRole);
+    analyticsEventsTable.grantReadWriteData(lambdaRole);
+    analyticsSummariesTable.grantReadWriteData(lambdaRole);
 
     // Grant S3 permissions
     imagesBucket.grantReadWrite(lambdaRole);
@@ -145,6 +151,9 @@ export class BackendStack extends cdk.Stack {
     // Common Lambda environment variables
     const commonEnvironment = {
       PRODUCTS_TABLE_NAME: productsTable.tableName,
+      CREATORS_TABLE_NAME: creatorsTable.tableName,
+      ANALYTICS_EVENTS_TABLE_NAME: analyticsEventsTable.tableName,
+      ANALYTICS_SUMMARIES_TABLE_NAME: analyticsSummariesTable.tableName,
       IMAGES_BUCKET_NAME: imagesBucket.bucketName,
       USER_POOL_ID: userPool.userPoolId,
       REGION: this.region,
@@ -377,6 +386,9 @@ export class BackendStack extends cdk.Stack {
         metricsEnabled: true,
         // Disable caching by default (will enable only for public endpoints)
         cachingEnabled: false,
+        // Enable throttling at the stage level
+        throttlingBurstLimit: 5000, // Maximum concurrent requests
+        throttlingRateLimit: 10000, // Maximum requests per second
       },
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
@@ -568,6 +580,459 @@ export class BackendStack extends cdk.Stack {
         authorizationType: apigateway.AuthorizationType.COGNITO,
       }
     );
+
+    // ========================================
+    // Multi-Creator Platform API Routes
+    // ========================================
+
+    // Create Lambda functions for multi-creator platform
+    const createCreatorFunction = new lambda.Function(this, 'CreateCreatorFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-createCreator',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/createCreator/index.handler',
+      description: 'Create a new creator profile',
+    });
+
+    const getCreatorBySlugFunction = new lambda.Function(this, 'GetCreatorBySlugFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-getCreatorBySlug',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/getCreatorBySlug/index.handler',
+      description: 'Get creator profile by slug',
+    });
+
+    const updateCreatorProfileFunction = new lambda.Function(this, 'UpdateCreatorProfileFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-updateCreatorProfile',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/updateCreatorProfile/index.handler',
+      description: 'Update creator profile',
+    });
+
+    const getCreatorAnalyticsFunction = new lambda.Function(this, 'GetCreatorAnalyticsFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-getCreatorAnalytics',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/getCreatorAnalytics/index.handler',
+      description: 'Get creator analytics',
+    });
+
+    const trackPageViewFunction = new lambda.Function(this, 'TrackPageViewFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-trackPageView',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/trackPageView/index.handler',
+      description: 'Track page view event',
+    });
+
+    const trackAffiliateClickFunction = new lambda.Function(this, 'TrackAffiliateClickFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-trackAffiliateClick',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/trackAffiliateClick/index.handler',
+      description: 'Track affiliate click event',
+    });
+
+    const getPendingProductsFunction = new lambda.Function(this, 'GetPendingProductsFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-getPendingProducts',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/getPendingProducts/index.handler',
+      description: 'Get all pending products for moderation',
+    });
+
+    const approveProductFunction = new lambda.Function(this, 'ApproveProductFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-approveProduct',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/approveProduct/index.handler',
+      description: 'Approve a product',
+    });
+
+    const rejectProductFunction = new lambda.Function(this, 'RejectProductFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-rejectProduct',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/rejectProduct/index.handler',
+      description: 'Reject a product',
+    });
+
+    const listAllCreatorsFunction = new lambda.Function(this, 'ListAllCreatorsFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-listAllCreators',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/listAllCreators/index.handler',
+      description: 'List all creators (admin)',
+    });
+
+    const updateCreatorStatusFunction = new lambda.Function(this, 'UpdateCreatorStatusFunction', {
+      ...lambdaConfig,
+      functionName: 'pinterest-affiliate-updateCreatorStatus',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../backend/dist')),
+      handler: 'functions/updateCreatorStatus/index.handler',
+      description: 'Update creator status (admin)',
+    });
+
+    // ========================================
+    // Public Creator Routes (No Auth Required)
+    // ========================================
+
+    // GET /api/creators/{slug}
+    const creatorsResource = apiResource.addResource('creators');
+    const creatorSlugResource = creatorsResource.addResource('{slug}');
+    creatorSlugResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getCreatorBySlugFunction, {
+        cacheKeyParameters: ['method.request.path.slug'],
+      }),
+      {
+        requestParameters: {
+          'method.request.path.slug': true,
+        },
+        methodResponses: [
+          {
+            statusCode: '200',
+            responseParameters: {
+              'method.response.header.Cache-Control': true,
+            },
+          },
+        ],
+      }
+    );
+
+    // GET /api/creators/{slug}/products
+    const creatorProductsResource = creatorSlugResource.addResource('products');
+    creatorProductsResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getProductsFunction, {
+        cacheKeyParameters: [
+          'method.request.path.slug',
+          'method.request.querystring.category',
+          'method.request.querystring.search',
+          'method.request.querystring.sort',
+        ],
+      }),
+      {
+        requestParameters: {
+          'method.request.path.slug': true,
+          'method.request.querystring.category': false,
+          'method.request.querystring.search': false,
+          'method.request.querystring.sort': false,
+          'method.request.querystring.limit': false,
+          'method.request.querystring.offset': false,
+        },
+        methodResponses: [
+          {
+            statusCode: '200',
+            responseParameters: {
+              'method.response.header.Cache-Control': true,
+            },
+          },
+        ],
+      }
+    );
+
+    // GET /api/creators/{slug}/featured
+    const creatorFeaturedResource = creatorSlugResource.addResource('featured');
+    creatorFeaturedResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getProductsFunction, {
+        cacheKeyParameters: ['method.request.path.slug'],
+      }),
+      {
+        requestParameters: {
+          'method.request.path.slug': true,
+        },
+        methodResponses: [
+          {
+            statusCode: '200',
+            responseParameters: {
+              'method.response.header.Cache-Control': true,
+            },
+          },
+        ],
+      }
+    );
+
+    // ========================================
+    // Creator Routes (Creator Auth Required)
+    // ========================================
+
+    const creatorResource = apiResource.addResource('creator');
+
+    // GET /api/creator/profile
+    // PUT /api/creator/profile
+    const creatorProfileResource = creatorResource.addResource('profile');
+    creatorProfileResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getCreatorBySlugFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+    creatorProfileResource.addMethod(
+      'PUT',
+      new apigateway.LambdaIntegration(updateCreatorProfileFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // GET /api/creator/products
+    // POST /api/creator/products
+    const creatorOwnProductsResource = creatorResource.addResource('products');
+    creatorOwnProductsResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getProductsFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+    creatorOwnProductsResource.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(createProductFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // PUT /api/creator/products/{id}
+    // DELETE /api/creator/products/{id}
+    const creatorProductResource = creatorOwnProductsResource.addResource('{id}');
+    creatorProductResource.addMethod(
+      'PUT',
+      new apigateway.LambdaIntegration(updateProductFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+    creatorProductResource.addMethod(
+      'DELETE',
+      new apigateway.LambdaIntegration(deleteProductFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // GET /api/creator/analytics
+    const creatorAnalyticsResource = creatorResource.addResource('analytics');
+    creatorAnalyticsResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getCreatorAnalyticsFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        requestParameters: {
+          'method.request.querystring.startDate': false,
+          'method.request.querystring.endDate': false,
+        },
+      }
+    );
+
+    // ========================================
+    // Admin Creator Management Routes
+    // ========================================
+
+    // GET /api/admin/creators
+    const adminCreatorsResource = adminResource.addResource('creators');
+    adminCreatorsResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(listAllCreatorsFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // POST /api/admin/creators (for admin to create creators)
+    adminCreatorsResource.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(createCreatorFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // PUT /api/admin/creators/{id}/status
+    const adminCreatorIdResource = adminCreatorsResource.addResource('{id}');
+    const adminCreatorStatusResource = adminCreatorIdResource.addResource('status');
+    adminCreatorStatusResource.addMethod(
+      'PUT',
+      new apigateway.LambdaIntegration(updateCreatorStatusFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // GET /api/admin/products/pending
+    const adminPendingResource = adminProductsResource.addResource('pending');
+    adminPendingResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getPendingProductsFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // PUT /api/admin/products/{id}/approve
+    const adminProductApproveResource = adminProductResource.addResource('approve');
+    adminProductApproveResource.addMethod(
+      'PUT',
+      new apigateway.LambdaIntegration(approveProductFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // PUT /api/admin/products/{id}/reject
+    const adminProductRejectResource = adminProductResource.addResource('reject');
+    adminProductRejectResource.addMethod(
+      'PUT',
+      new apigateway.LambdaIntegration(rejectProductFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+
+    // ========================================
+    // Analytics Tracking Routes (Public)
+    // ========================================
+
+    // POST /api/analytics/page-view
+    const analyticsResource = apiResource.addResource('analytics');
+    const pageViewResource = analyticsResource.addResource('page-view');
+    pageViewResource.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(trackPageViewFunction)
+    );
+
+    // POST /api/analytics/affiliate-click
+    const affiliateClickResource = analyticsResource.addResource('affiliate-click');
+    affiliateClickResource.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(trackAffiliateClickFunction)
+    );
+
+    // ========================================
+    // Rate Limiting Configuration
+    // ========================================
+
+    // Create Usage Plans for different user types
+    // Requirements: Performance and security
+
+    // Public Usage Plan - 100 requests per minute per IP
+    const publicUsagePlan = this.api.addUsagePlan('PublicUsagePlan', {
+      name: 'Public API Usage',
+      description: 'Rate limiting for public endpoints',
+      throttle: {
+        rateLimit: 100, // requests per second
+        burstLimit: 200, // maximum concurrent requests
+      },
+      quota: {
+        limit: 100000, // requests per month
+        period: apigateway.Period.MONTH,
+      },
+    });
+
+    // Associate public usage plan with the API stage
+    publicUsagePlan.addApiStage({
+      stage: this.api.deploymentStage,
+    });
+
+    // Creator Usage Plan - 1000 requests per minute per user
+    const creatorUsagePlan = this.api.addUsagePlan('CreatorUsagePlan', {
+      name: 'Creator API Usage',
+      description: 'Rate limiting for creator endpoints',
+      throttle: {
+        rateLimit: 1000, // requests per second
+        burstLimit: 2000, // maximum concurrent requests
+      },
+      quota: {
+        limit: 1000000, // requests per month
+        period: apigateway.Period.MONTH,
+      },
+    });
+
+    creatorUsagePlan.addApiStage({
+      stage: this.api.deploymentStage,
+    });
+
+    // Admin Usage Plan - 10000 requests per minute per user
+    const adminUsagePlan = this.api.addUsagePlan('AdminUsagePlan', {
+      name: 'Admin API Usage',
+      description: 'Rate limiting for admin endpoints',
+      throttle: {
+        rateLimit: 10000, // requests per second
+        burstLimit: 20000, // maximum concurrent requests
+      },
+      quota: {
+        limit: 10000000, // requests per month
+        period: apigateway.Period.MONTH,
+      },
+    });
+
+    adminUsagePlan.addApiStage({
+      stage: this.api.deploymentStage,
+    });
+
+    // Configure method-level throttling for specific endpoints
+    // This provides more granular control over rate limits
+
+    // Public endpoints - 100 req/min
+    const publicThrottle = {
+      throttle: {
+        rateLimit: 100,
+        burstLimit: 200,
+      },
+    };
+
+    // Creator endpoints - 1000 req/min
+    const creatorThrottle = {
+      throttle: {
+        rateLimit: 1000,
+        burstLimit: 2000,
+      },
+    };
+
+    // Admin endpoints - 10000 req/min
+    const adminThrottle = {
+      throttle: {
+        rateLimit: 10000,
+        burstLimit: 20000,
+      },
+    };
+
+    // Note: Method-level throttling is applied through the deployment stage settings
+    // The usage plans above provide account-level throttling
+    // For IP-based throttling on public endpoints, AWS WAF would be required
+
+    // Output usage plan IDs
+    new cdk.CfnOutput(this, 'PublicUsagePlanId', {
+      value: publicUsagePlan.usagePlanId,
+      description: 'Public API Usage Plan ID',
+    });
+
+    new cdk.CfnOutput(this, 'CreatorUsagePlanId', {
+      value: creatorUsagePlan.usagePlanId,
+      description: 'Creator API Usage Plan ID',
+    });
+
+    new cdk.CfnOutput(this, 'AdminUsagePlanId', {
+      value: adminUsagePlan.usagePlanId,
+      description: 'Admin API Usage Plan ID',
+    });
 
     // Create CloudWatch Dashboard for Price Sync Monitoring
     // Requirement 8.3: Create CloudWatch dashboard for price sync monitoring

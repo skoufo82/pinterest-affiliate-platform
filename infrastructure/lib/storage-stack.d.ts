@@ -6,6 +6,9 @@ import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 export declare class StorageStack extends cdk.Stack {
     readonly productsTable: dynamodb.Table;
+    readonly creatorsTable: dynamodb.Table;
+    readonly analyticsEventsTable: dynamodb.Table;
+    readonly analyticsSummariesTable: dynamodb.Table;
     readonly imagesBucket: s3.Bucket;
     readonly imagesCdn: cloudfront.Distribution;
     readonly userPool: cognito.UserPool;

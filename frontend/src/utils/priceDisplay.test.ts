@@ -89,12 +89,12 @@ describe('priceDisplay utilities', () => {
       expect(getPriceDisplayText('$29.99')).toBe('$29.99');
     });
 
-    it('should return "Price not available" when price is undefined', () => {
-      expect(getPriceDisplayText(undefined)).toBe('Price not available');
+    it('should return empty string when price is undefined', () => {
+      expect(getPriceDisplayText(undefined)).toBe('');
     });
 
-    it('should return "Price not available" when price is empty string', () => {
-      expect(getPriceDisplayText('')).toBe('Price not available');
+    it('should return empty string when price is empty string', () => {
+      expect(getPriceDisplayText('')).toBe('');
     });
   });
 

@@ -66,3 +66,145 @@ export function validateImageUpload(data: Record<string, unknown>): { valid: boo
     errors,
   };
 }
+
+export function validateCreator(data: Record<string, unknown>): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (!data.displayName || typeof data.displayName !== 'string' || data.displayName.length > 100) {
+    errors.push('Display name is required and must be a string with max 100 characters');
+  }
+
+  if (!data.bio || typeof data.bio !== 'string' || data.bio.length > 500) {
+    errors.push('Bio is required and must be a string with max 500 characters');
+  }
+
+  if (!data.profileImage || typeof data.profileImage !== 'string') {
+    errors.push('Profile image is required and must be a string');
+  }
+
+  if (!data.coverImage || typeof data.coverImage !== 'string') {
+    errors.push('Cover image is required and must be a string');
+  }
+
+  if (data.socialLinks !== undefined) {
+    if (typeof data.socialLinks !== 'object' || data.socialLinks === null) {
+      errors.push('Social links must be an object');
+    } else {
+      const socialLinks = data.socialLinks as Record<string, unknown>;
+      
+      if (socialLinks.instagram !== undefined && typeof socialLinks.instagram !== 'string') {
+        errors.push('Instagram link must be a string');
+      }
+      
+      if (socialLinks.pinterest !== undefined && typeof socialLinks.pinterest !== 'string') {
+        errors.push('Pinterest link must be a string');
+      }
+      
+      if (socialLinks.tiktok !== undefined && typeof socialLinks.tiktok !== 'string') {
+        errors.push('TikTok link must be a string');
+      }
+    }
+  }
+
+  if (data.theme !== undefined) {
+    if (typeof data.theme !== 'object' || data.theme === null) {
+      errors.push('Theme must be an object');
+    } else {
+      const theme = data.theme as Record<string, unknown>;
+      
+      if (!theme.primaryColor || typeof theme.primaryColor !== 'string') {
+        errors.push('Theme primary color is required and must be a string');
+      } else if (!/^#[0-9A-Fa-f]{6}$/.test(theme.primaryColor)) {
+        errors.push('Theme primary color must be a valid hex color (e.g., #FF5733)');
+      }
+      
+      if (!theme.accentColor || typeof theme.accentColor !== 'string') {
+        errors.push('Theme accent color is required and must be a string');
+      } else if (!/^#[0-9A-Fa-f]{6}$/.test(theme.accentColor)) {
+        errors.push('Theme accent color must be a valid hex color (e.g., #FF5733)');
+      }
+      
+      if (!theme.font || typeof theme.font !== 'string') {
+        errors.push('Theme font is required and must be a string');
+      }
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+export function validateCreatorUpdate(data: Record<string, unknown>): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (data.displayName !== undefined) {
+    if (typeof data.displayName !== 'string' || data.displayName.length > 100) {
+      errors.push('Display name must be a string with max 100 characters');
+    }
+  }
+
+  if (data.bio !== undefined) {
+    if (typeof data.bio !== 'string' || data.bio.length > 500) {
+      errors.push('Bio must be a string with max 500 characters');
+    }
+  }
+
+  if (data.profileImage !== undefined && typeof data.profileImage !== 'string') {
+    errors.push('Profile image must be a string');
+  }
+
+  if (data.coverImage !== undefined && typeof data.coverImage !== 'string') {
+    errors.push('Cover image must be a string');
+  }
+
+  if (data.socialLinks !== undefined) {
+    if (typeof data.socialLinks !== 'object' || data.socialLinks === null) {
+      errors.push('Social links must be an object');
+    } else {
+      const socialLinks = data.socialLinks as Record<string, unknown>;
+      
+      if (socialLinks.instagram !== undefined && typeof socialLinks.instagram !== 'string') {
+        errors.push('Instagram link must be a string');
+      }
+      
+      if (socialLinks.pinterest !== undefined && typeof socialLinks.pinterest !== 'string') {
+        errors.push('Pinterest link must be a string');
+      }
+      
+      if (socialLinks.tiktok !== undefined && typeof socialLinks.tiktok !== 'string') {
+        errors.push('TikTok link must be a string');
+      }
+    }
+  }
+
+  if (data.theme !== undefined) {
+    if (typeof data.theme !== 'object' || data.theme === null) {
+      errors.push('Theme must be an object');
+    } else {
+      const theme = data.theme as Record<string, unknown>;
+      
+      if (theme.primaryColor !== undefined) {
+        if (typeof theme.primaryColor !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(theme.primaryColor)) {
+          errors.push('Theme primary color must be a valid hex color (e.g., #FF5733)');
+        }
+      }
+      
+      if (theme.accentColor !== undefined) {
+        if (typeof theme.accentColor !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(theme.accentColor)) {
+          errors.push('Theme accent color must be a valid hex color (e.g., #FF5733)');
+        }
+      }
+      
+      if (theme.font !== undefined && typeof theme.font !== 'string') {
+        errors.push('Theme font must be a string');
+      }
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}

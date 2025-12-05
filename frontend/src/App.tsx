@@ -15,10 +15,13 @@ import { setAuthTokenGetter } from '@/utils/api';
 import { initGA, trackPageView } from '@/utils/analytics';
 
 // Public pages (eagerly loaded for better initial performance)
-import Home from '@/pages/Home';
+import PlatformHome from '@/pages/PlatformHome';
+import BrowseCreators from '@/pages/BrowseCreators';
+import CreatorSignup from '@/pages/CreatorSignup';
 import Categories from '@/pages/Categories';
 import CategoryProducts from '@/pages/CategoryProducts';
 import ProductDetail from '@/pages/ProductDetail';
+import CreatorLandingPage from '@/pages/CreatorLandingPage';
 import { Login } from '@/pages/Login';
 
 // Admin pages (lazy loaded - code splitting)
@@ -28,6 +31,16 @@ const AdminProductNew = lazy(() => import('@/pages/AdminProductNew'));
 const AdminProductEdit = lazy(() => import('@/pages/AdminProductEdit'));
 const AdminUserManagement = lazy(() => import('@/pages/AdminUserManagement'));
 const AdminSyncHistory = lazy(() => import('@/pages/AdminSyncHistory'));
+const AdminModerationPanel = lazy(() => import('@/pages/AdminModerationPanel'));
+const AdminCreatorManagement = lazy(() => import('@/pages/AdminCreatorManagement'));
+const AdminAnalytics = lazy(() => import('@/pages/AdminAnalytics'));
+
+// Creator pages (lazy loaded - code splitting)
+const CreatorProfileEditor = lazy(() => import('@/pages/CreatorProfileEditor'));
+const CreatorProductManager = lazy(() => import('@/pages/CreatorProductManager'));
+const CreatorProductNew = lazy(() => import('@/pages/CreatorProductNew'));
+const CreatorProductEdit = lazy(() => import('@/pages/CreatorProductEdit'));
+const CreatorAnalyticsDashboard = lazy(() => import('@/pages/CreatorAnalyticsDashboard'));
 
 // 404 page
 import NotFound from '@/pages/NotFound';
@@ -113,13 +126,68 @@ function App() {
         <main id="main-content" className="flex-grow" role="main">
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<PlatformHome />} />
+            <Route path="/creators" element={<BrowseCreators />} />
+            <Route path="/signup" element={<CreatorSignup />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/categories/:category" element={<CategoryProducts />} />
             <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/creator/:slug" element={<CreatorLandingPage />} />
 
             {/* Login route */}
             <Route path="/login" element={<Login />} />
+
+            {/* Creator routes - protected and lazy loaded */}
+            <Route
+              path="/creator/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <CreatorProfileEditor />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/creator/products"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <CreatorProductManager />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/creator/products/new"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <CreatorProductNew />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/creator/products/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <CreatorProductEdit />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/creator/analytics"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <CreatorAnalyticsDashboard />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin routes - protected and lazy loaded */}
             <Route
@@ -189,6 +257,42 @@ function App() {
                   <AdminLayout>
                     <Suspense fallback={<PageLoader />}>
                       <AdminSyncHistory />
+                    </Suspense>
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kbportal/moderation"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminModerationPanel />
+                    </Suspense>
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kbportal/creators"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminCreatorManagement />
+                    </Suspense>
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kbportal/analytics"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminAnalytics />
                     </Suspense>
                   </AdminLayout>
                 </ProtectedRoute>

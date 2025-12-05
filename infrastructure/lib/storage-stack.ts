@@ -8,6 +8,9 @@ import { Construct } from 'constructs';
 
 export class StorageStack extends cdk.Stack {
   public readonly productsTable: dynamodb.Table;
+  public readonly creatorsTable: dynamodb.Table;
+  public readonly analyticsEventsTable: dynamodb.Table;
+  public readonly analyticsSummariesTable: dynamodb.Table;
   public readonly imagesBucket: s3.Bucket;
   public readonly imagesCdn: cloudfront.Distribution;
   public readonly userPool: cognito.UserPool;
@@ -15,6 +18,39 @@ export class StorageStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // Create DynamoDB table for creators
+    this.creatorsTable = new dynamodb.Table(this, 'CreatorsTable', {
+      tableName: 'CreatorsTable',
+      partitionKey: {
+        name: 'id',
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      pointInTimeRecovery: true,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+    });
+
+    // Add GSI for slug-based queries
+    this.creatorsTable.addGlobalSecondaryIndex({
+      indexName: 'slug-index',
+      partitionKey: {
+        name: 'slug',
+        type: dynamodb.AttributeType.STRING,
+      },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    // Add GSI for userId-based queries
+    this.creatorsTable.addGlobalSecondaryIndex({
+      indexName: 'userId-index',
+      partitionKey: {
+        name: 'userId',
+        type: dynamodb.AttributeType.STRING,
+      },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
 
     // Create DynamoDB table for products
     this.productsTable = new dynamodb.Table(this, 'ProductsTable', {
@@ -55,6 +91,71 @@ export class StorageStack extends cdk.Stack {
         type: dynamodb.AttributeType.STRING,
       },
       projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    // Add GSI for creator-based product queries
+    // TEMPORARILY COMMENTED - Will add incrementally
+    // this.productsTable.addGlobalSecondaryIndex({
+    //   indexName: 'creatorId-index',
+    //   partitionKey: {
+    //     name: 'creatorId',
+    //     type: dynamodb.AttributeType.STRING,
+    //   },
+    //   sortKey: {
+    //     name: 'createdAt',
+    //     type: dynamodb.AttributeType.STRING,
+    //   },
+    //   projectionType: dynamodb.ProjectionType.ALL,
+    // });
+
+    // Add GSI for status-based product queries (for moderation)
+    // TEMPORARILY COMMENTED - Will add incrementally
+    // this.productsTable.addGlobalSecondaryIndex({
+    //   indexName: 'status-index',
+    //   partitionKey: {
+    //     name: 'status',
+    //     type: dynamodb.AttributeType.STRING,
+    //   },
+    //   sortKey: {
+    //     name: 'createdAt',
+    //     type: dynamodb.AttributeType.STRING,
+    //   },
+    //   projectionType: dynamodb.ProjectionType.ALL,
+    // });
+
+    // Create DynamoDB table for analytics events
+    this.analyticsEventsTable = new dynamodb.Table(this, 'AnalyticsEventsTable', {
+      tableName: 'AnalyticsEventsTable',
+      partitionKey: {
+        name: 'creatorId',
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'timestamp',
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      pointInTimeRecovery: true,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      timeToLiveAttribute: 'ttl', // TTL for 90 days
+    });
+
+    // Create DynamoDB table for analytics summaries
+    this.analyticsSummariesTable = new dynamodb.Table(this, 'AnalyticsSummariesTable', {
+      tableName: 'AnalyticsSummariesTable',
+      partitionKey: {
+        name: 'creatorId',
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'date',
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      pointInTimeRecovery: true,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
     });
 
     // Create S3 bucket for product images
@@ -218,6 +319,24 @@ export class StorageStack extends cdk.Stack {
       value: this.userPoolClient.userPoolClientId,
       description: 'Cognito User Pool Client ID',
       exportName: 'UserPoolClientId',
+    });
+
+    new cdk.CfnOutput(this, 'CreatorsTableName', {
+      value: this.creatorsTable.tableName,
+      description: 'DynamoDB Creators Table Name',
+      exportName: 'CreatorsTableName',
+    });
+
+    new cdk.CfnOutput(this, 'AnalyticsEventsTableName', {
+      value: this.analyticsEventsTable.tableName,
+      description: 'DynamoDB Analytics Events Table Name',
+      exportName: 'AnalyticsEventsTableName',
+    });
+
+    new cdk.CfnOutput(this, 'AnalyticsSummariesTableName', {
+      value: this.analyticsSummariesTable.tableName,
+      description: 'DynamoDB Analytics Summaries Table Name',
+      exportName: 'AnalyticsSummariesTableName',
     });
   }
 }

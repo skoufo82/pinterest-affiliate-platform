@@ -163,3 +163,54 @@ export function removeStructuredData(): void {
     existingScript.remove();
   }
 }
+
+/**
+ * Generate SEO metadata for creator landing page
+ */
+export function getCreatorSEO(creator: {
+  displayName: string;
+  bio: string;
+  profileImage: string;
+  slug: string;
+}): SEOMetadata {
+  return {
+    title: `${creator.displayName} - Creator Storefront | KoufoBunch`,
+    description: creator.bio.substring(0, 160), // Limit to 160 chars for meta description
+    image: creator.profileImage,
+    url: `${window.location.origin}/creator/${creator.slug}`,
+    type: 'website',
+  };
+}
+
+/**
+ * Generate JSON-LD structured data for a creator profile
+ */
+export function generateCreatorStructuredData(creator: {
+  displayName: string;
+  bio: string;
+  profileImage: string;
+  slug: string;
+  socialLinks: {
+    instagram?: string;
+    pinterest?: string;
+    tiktok?: string;
+  };
+}): string {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: creator.displayName,
+    description: creator.bio,
+    image: creator.profileImage,
+    url: `${window.location.origin}/creator/${creator.slug}`,
+    ...(creator.socialLinks.instagram && {
+      sameAs: [
+        creator.socialLinks.instagram,
+        creator.socialLinks.pinterest,
+        creator.socialLinks.tiktok,
+      ].filter(Boolean),
+    }),
+  };
+
+  return JSON.stringify(structuredData);
+}

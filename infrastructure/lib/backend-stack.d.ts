@@ -7,6 +7,9 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
 interface BackendStackProps extends cdk.StackProps {
     productsTable: dynamodb.Table;
+    creatorsTable: dynamodb.Table;
+    analyticsEventsTable: dynamodb.Table;
+    analyticsSummariesTable: dynamodb.Table;
     imagesBucket: s3.Bucket;
     userPool: cognito.UserPool;
 }

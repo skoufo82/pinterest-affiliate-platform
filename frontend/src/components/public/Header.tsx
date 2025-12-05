@@ -1,11 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { creatorApi } from '@/utils/api';
+import { Creator } from '@/types';
 
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, isAdmin, userGroups, logout } = useAuth();
+  const [creator, setCreator] = useState<Creator | null>(null);
+  const [loadingCreator, setLoadingCreator] = useState(false);
+
+  const isCreator = userGroups.includes('Creators');
+
+  useEffect(() => {
+    // Fetch creator profile if user is a creator
+    if (isAuthenticated && isCreator && !creator && !loadingCreator) {
+      setLoadingCreator(true);
+      creatorApi.getProfile()
+        .then(response => {
+          setCreator(response.creator);
+        })
+        .catch(err => {
+          console.error('Failed to fetch creator profile:', err);
+        })
+        .finally(() => {
+          setLoadingCreator(false);
+        });
+    }
+  }, [isAuthenticated, isCreator, creator, loadingCreator]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setCreator(null);
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -28,11 +59,76 @@ export const Header = () => {
               Home
             </Link>
             <Link
-              to="/categories"
+              to="/creators"
               className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
             >
-              Categories
+              Browse Creators
             </Link>
+            
+            {/* Creator Navigation */}
+            {isAuthenticated && isCreator && creator && (
+              <>
+                <Link
+                  to={`/creator/${creator.slug}`}
+                  className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                >
+                  My Storefront
+                </Link>
+                <Link
+                  to="/creator/products"
+                  className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                >
+                  My Products
+                </Link>
+                <Link
+                  to="/creator/analytics"
+                  className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                >
+                  Analytics
+                </Link>
+                <Link
+                  to="/creator/profile/edit"
+                  className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                >
+                  Profile Settings
+                </Link>
+              </>
+            )}
+
+            {/* Admin Navigation */}
+            {isAuthenticated && isAdmin && (
+              <Link
+                to="/kbportal"
+                className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+              >
+                Admin Portal
+              </Link>
+            )}
+
+            {/* Auth Actions */}
+            {!isAuthenticated ? (
+              <>
+                <Link
+                  to="/signup"
+                  className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors font-medium"
+                >
+                  Become a Creator
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                >
+                  Login
+                </Link>
+              </>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+              >
+                Logout
+              </button>
+            )}
           </nav>
 
           {/* Mobile Hamburger Menu Button */}
@@ -81,12 +177,108 @@ export const Header = () => {
               </li>
               <li>
                 <Link
-                  to="/categories"
+                  to="/creators"
                   className="text-gray-700 hover:text-pink-600 transition-colors font-medium py-2 block"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Categories
+                  Browse Creators
                 </Link>
+              </li>
+
+              {/* Creator Navigation - Mobile */}
+              {isAuthenticated && isCreator && creator && (
+                <>
+                  <li className="border-t border-gray-200 pt-3 mt-3">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+                      Creator Menu
+                    </div>
+                  </li>
+                  <li>
+                    <Link
+                      to={`/creator/${creator.slug}`}
+                      className="text-gray-700 hover:text-pink-600 transition-colors font-medium py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      My Storefront
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/creator/products"
+                      className="text-gray-700 hover:text-pink-600 transition-colors font-medium py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      My Products
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/creator/analytics"
+                      className="text-gray-700 hover:text-pink-600 transition-colors font-medium py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Analytics
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/creator/profile/edit"
+                      className="text-gray-700 hover:text-pink-600 transition-colors font-medium py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile Settings
+                    </Link>
+                  </li>
+                </>
+              )}
+
+              {/* Admin Navigation - Mobile */}
+              {isAuthenticated && isAdmin && (
+                <>
+                  <li className="border-t border-gray-200 pt-3 mt-3">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+                      Admin Menu
+                    </div>
+                  </li>
+                  <li>
+                    <Link
+                      to="/kbportal"
+                      className="text-gray-700 hover:text-pink-600 transition-colors font-medium py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Admin Portal
+                    </Link>
+                  </li>
+                </>
+              )}
+
+              {/* Auth Actions - Mobile */}
+              <li className="border-t border-gray-200 pt-3 mt-3">
+                {!isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/signup"
+                      className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors font-medium block text-center mb-3"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Become a Creator
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="text-gray-700 hover:text-pink-600 transition-colors font-medium py-2 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-700 hover:text-pink-600 transition-colors font-medium py-2 block w-full text-left"
+                  >
+                    Logout
+                  </button>
+                )}
               </li>
             </ul>
           </nav>

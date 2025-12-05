@@ -19,13 +19,45 @@ export async function handler(
   
   try {
     const category = event.queryStringParameters?.category;
+    const creatorId = event.queryStringParameters?.creatorId;
     const limit = parseInt(event.queryStringParameters?.limit || '20', 10);
     const offset = parseInt(event.queryStringParameters?.offset || '0', 10);
 
     let products: Product[] = [];
     let total = 0;
 
-    if (category) {
+    if (creatorId) {
+      // Query by creatorId using GSI
+      const queryCommand = new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: 'creatorId-index',
+        KeyConditionExpression: 'creatorId = :creatorId',
+        ExpressionAttributeValues: {
+          ':creatorId': creatorId,
+        },
+        ScanIndexForward: false, // Sort by createdAt descending
+      });
+
+      const result = await docClient.send(queryCommand);
+      let allProducts = (result.Items || []) as any[];
+      
+      // Filter by category if specified
+      if (category) {
+        allProducts = allProducts.filter(p => p.category === category);
+      }
+      
+      // Transform string booleans to actual booleans
+      const transformedProducts = allProducts.map(p => ({
+        ...p,
+        published: p.published === 'true',
+        featured: p.featured === 'true',
+      }));
+      
+      total = transformedProducts.length;
+      
+      // Apply pagination
+      products = transformedProducts.slice(offset, offset + limit);
+    } else if (category) {
       // Query by category using GSI
       const queryCommand = new QueryCommand({
         TableName: TABLE_NAME,
