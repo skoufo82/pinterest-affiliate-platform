@@ -156,7 +156,7 @@ export const api = {
     displayName: string;
     password: string;
   }): Promise<import('@/types').CreatorResponse> => {
-    const response = await apiClient.post<import('@/types').CreatorResponse>('/creators/signup', data);
+    const response = await apiClient.post<import('@/types').CreatorResponse>('/creators', data);
     return response.data;
   },
 

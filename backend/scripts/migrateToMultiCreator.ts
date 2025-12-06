@@ -270,11 +270,9 @@ async function migrate(): Promise<void> {
 }
 
 // Run migration if executed directly
-if (require.main === module) {
-  migrate().catch((error) => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  });
-}
+migrate().catch((error) => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
 
 export { migrate, createDefaultCreator, backfillProducts, verifyDataIntegrity };

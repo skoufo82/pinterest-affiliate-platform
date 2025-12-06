@@ -680,6 +680,17 @@ export class BackendStack extends cdk.Stack {
 
     // GET /api/creators/{slug}
     const creatorsResource = apiResource.addResource('creators');
+    
+    // POST /api/creators (public creator signup)
+    creatorsResource.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(createCreatorFunction),
+      {
+        authorizer,
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+      }
+    );
+    
     const creatorSlugResource = creatorsResource.addResource('{slug}');
     creatorSlugResource.addMethod(
       'GET',

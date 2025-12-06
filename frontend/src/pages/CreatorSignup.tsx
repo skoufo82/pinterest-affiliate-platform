@@ -102,7 +102,20 @@ function CreatorSignup() {
     setLoading(true);
 
     try {
-      // Call the creator signup API
+      // Step 1: Create Cognito user account
+      const { Auth } = await import('aws-amplify');
+      await Auth.signUp({
+        username: formData.username,
+        password: formData.password,
+        attributes: {
+          email: formData.email,
+        },
+      });
+
+      // Step 2: Auto-login after signup
+      await Auth.signIn(formData.username, formData.password);
+
+      // Step 3: Create creator profile
       await api.createCreator({
         username: formData.username,
         email: formData.email,
@@ -110,21 +123,26 @@ function CreatorSignup() {
         password: formData.password,
       });
 
-      toast.success('Account created successfully! Check your email for verification.');
+      toast.success('Account created successfully! Redirecting to your dashboard...');
       
-      // Redirect to login page
+      // Redirect to creator dashboard
       setTimeout(() => {
-        navigate('/login');
+        navigate('/creator/profile/edit');
       }, 2000);
     } catch (error: any) {
       console.error('Signup error:', error);
       
       // Handle specific error cases
-      if (error.response?.status === 409) {
+      if (error.code === 'UsernameExistsException') {
+        setErrors({ username: 'This username is already taken. Please choose another.' });
+        toast.error('Username already taken');
+      } else if (error.response?.status === 409) {
         setErrors({ username: 'This username is already taken. Please choose another.' });
         toast.error('Username already taken');
       } else if (error.response?.data?.error?.message) {
         toast.error(error.response.data.error.message);
+      } else if (error.message) {
+        toast.error(error.message);
       } else {
         toast.error('Failed to create account. Please try again.');
       }
