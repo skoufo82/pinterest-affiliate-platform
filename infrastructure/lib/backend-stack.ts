@@ -678,8 +678,19 @@ export class BackendStack extends cdk.Stack {
     // Public Creator Routes (No Auth Required)
     // ========================================
 
-    // GET /api/creators/{slug}
+    // GET /api/creators (list all active creators - public)
     const creatorsResource = apiResource.addResource('creators');
+    creatorsResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(listAllCreatorsFunction),
+      {
+        requestParameters: {
+          'method.request.querystring.limit': false,
+          'method.request.querystring.search': false,
+          'method.request.querystring.offset': false,
+        },
+      }
+    );
     
     // POST /api/creators (public creator signup)
     creatorsResource.addMethod(
@@ -691,6 +702,7 @@ export class BackendStack extends cdk.Stack {
       }
     );
     
+    // GET /api/creators/{slug}
     const creatorSlugResource = creatorsResource.addResource('{slug}');
     creatorSlugResource.addMethod(
       'GET',
